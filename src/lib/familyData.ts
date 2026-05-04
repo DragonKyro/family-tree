@@ -1,25 +1,116 @@
-import familyJson from '../data/family.json'
-import type { FamilyData, Person } from '../types'
+import type { FamilyData, FamilyPayload, Person, UpdatePersonResponse } from '../types'
+import { getPassword } from './auth'
 
 export const SYNTHETIC_ROOT_ID = 'family-root'
 export const LUI_ROOT_ID = 'gf-lui'
 export const SHUM_ROOT_ID = 'gf-shum'
 
-export function loadFamily(): FamilyData {
-  return familyJson as FamilyData
+/**
+ * In dev, same-origin Vite middleware handles /api and /photos directly.
+ * In prod, requests go to the deployed Cloudflare Worker whose URL is baked
+ * into the build via VITE_API_BASE.
+ */
+const API_BASE: string =
+  (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/+$/, '') ?? ''
+
+export const isProdApi = API_BASE.length > 0
+
+export class AuthError extends Error {
+  constructor() {
+    super('Wrong password — sign out and try again.')
+    this.name = 'AuthError'
+  }
+}
+
+export class ConflictError extends Error {
+  constructor(public serverVersion?: number) {
+    super('Someone else saved a change while you were editing. Reload to see the latest.')
+    this.name = 'ConflictError'
+  }
+}
+
+export class ApiError extends Error {
+  constructor(message: string, public status: number, public field?: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+function authHeaders(): HeadersInit {
+  return { 'x-family-password': getPassword() }
+}
+
+async function handleFailure(res: Response): Promise<never> {
+  if (res.status === 401) throw new AuthError()
+  if (res.status === 409) {
+    const body = (await res.json().catch(() => ({}))) as { version?: number }
+    throw new ConflictError(body.version)
+  }
+  const body = (await res.json().catch(() => ({}))) as { error?: string; field?: string }
+  throw new ApiError(body.error ?? `Request failed (${res.status})`, res.status, body.field)
+}
+
+/** Ping the API with current password to verify auth. Returns true on 200. */
+export async function verifyPassword(candidate: string): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/api/family`, {
+    headers: { 'x-family-password': candidate },
+  })
+  if (res.status === 401) return false
+  return res.ok
+}
+
+export async function fetchFamily(): Promise<FamilyPayload> {
+  const res = await fetch(`${API_BASE}/api/family`, { headers: authHeaders() })
+  if (!res.ok) await handleFailure(res)
+  return (await res.json()) as FamilyPayload
+}
+
+export async function updatePerson(
+  id: string,
+  edits: Partial<Person['data']>,
+  version: number,
+): Promise<UpdatePersonResponse> {
+  const res = await fetch(`${API_BASE}/api/people/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: {
+      ...authHeaders(),
+      'content-type': 'application/json',
+      'if-match': `"${version}"`,
+    },
+    body: JSON.stringify(edits),
+  })
+  if (!res.ok) await handleFailure(res)
+  return (await res.json()) as UpdatePersonResponse
+}
+
+export async function uploadPhoto(file: File | Blob): Promise<{ path: string }> {
+  const res = await fetch(`${API_BASE}/api/photos`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(),
+      'content-type': file.type || 'application/octet-stream',
+    },
+    body: file,
+  })
+  if (!res.ok) await handleFailure(res)
+  return (await res.json()) as { path: string }
 }
 
 /**
- * family-chart walks only ancestors (up) and descendants (down) from the "main"
- * person, so aunts/uncles/cousins are never visited. To render the full tree
- * we graft a hidden synthetic root above both grandparent couples.
- *
- * Kyle's mother Janet would otherwise appear twice — once as Gong Gong's
- * descendant in the Shum subtree, once as Alex's spouse in the Lui subtree —
- * so we unhook her from Gong Gong + Po Po's children lists at render time.
- * Her `rels.father`/`rels.mother` stay intact in the source data, so the
- * details panel still shows her parents correctly.
+ * Turn a stored photo path (e.g. "/photos/<uuid>.jpg") into a URL the browser
+ * can render. In prod the Worker is a different origin and requires the
+ * password, so we pass it in the query string (auth header can't be attached
+ * to a plain <img src> request).
  */
+export function resolvePhotoUrl(path: string | undefined): string | undefined {
+  if (!path) return undefined
+  if (/^https?:\/\//i.test(path)) return path
+  if (!path.startsWith('/')) return path
+  if (!API_BASE) return path
+  const pw = encodeURIComponent(getPassword())
+  return `${API_BASE}${path}?p=${pw}`
+}
+
 const BRIDGE_CHILD_IDS = ['janet-shum']
 
 export function buildTreeData(source: FamilyData): FamilyData {

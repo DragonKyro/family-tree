@@ -11,6 +11,19 @@ export interface PersonData {
   avatar?: string
   notes?: string
   branch?: 'immediate' | 'lui' | 'shum' | 'placeholder'
+
+  // Contact + profile
+  phone?: string
+  email?: string
+  high_school?: string
+  high_school_grad_year?: string
+  college?: string
+  college_grad_year?: string
+  current_town?: string
+  current_job?: string
+  current_role?: string
+  interests?: string
+
   [key: string]: unknown
 }
 
@@ -29,3 +42,13 @@ export interface Person {
 }
 
 export type FamilyData = Person[]
+
+export interface FamilyPayload {
+  data: FamilyData
+  version: number
+}
+
+export interface UpdatePersonResponse {
+  version: number
+  person: Person
+}

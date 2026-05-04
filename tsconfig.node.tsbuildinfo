@@ -1,1 +1,1 @@
-{"root":["./vite.config.ts"],"version":"5.9.3"}
+{"root":["./vite.config.ts","./server/handler.ts","./server/photos.ts","./server/storage.ts","./server/validation.ts","./server/viteplugin.ts"],"version":"5.9.3"}

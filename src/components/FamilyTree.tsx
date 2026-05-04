@@ -14,21 +14,22 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
+  const chartRef = useRef<any>(null)
   const didCenterRef = useRef(false)
 
+  // Create the chart once. Subsequent data updates are handled in a separate
+  // effect so pan/zoom state survives edits.
   useEffect(() => {
     if (!containerRef.current) return
-
     const el = containerRef.current
     el.classList.add('f3')
     el.innerHTML = ''
-    didCenterRef.current = false
 
     const treeData = buildTreeData(data)
 
     const chart = f3
       .createChart(el, treeData)
-      .setTransitionTime(500)
+      .setTransitionTime(400)
       .setCardXSpacing(260)
       .setCardYSpacing(160)
       .setSingleParentEmptyCard(false)
@@ -37,7 +38,8 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
       .setProgenyDepth(100)
       .setAfterUpdate(() => {
         hideSyntheticRoot(el)
-        tagLinks(el, treeData)
+        const latest = chart.store?.getData?.() as FamilyData | undefined
+        if (latest) tagLinks(el, latest)
         drawBridgeLinks(chart, el)
         if (!didCenterRef.current) {
           centerOnPerson(chart, el, focusId)
@@ -57,12 +59,10 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
       .setOnCardUpdate(function (this: Element, d: { data: Person }) {
         const cardEl = this.querySelector('.card') as HTMLElement | null
         if (!cardEl) return
-
         if (d?.data?.id === SYNTHETIC_ROOT_ID) {
           cardEl.classList.add('card-synthetic')
           return
         }
-
         const branches = ['branch-immediate', 'branch-lui', 'branch-shum', 'branch-placeholder']
         cardEl.classList.remove(...branches)
         const branch = (d?.data?.data as Record<string, unknown>)?.branch as string | undefined
@@ -75,10 +75,24 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
     })
 
     chart.updateTree({ initial: true })
+    chartRef.current = chart
 
     return () => {
       el.innerHTML = ''
+      chartRef.current = null
+      didCenterRef.current = false
     }
+    // Mount once — data updates flow through the next effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Push new data into the existing chart so pan/zoom stays put.
+  useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
+    const treeData = buildTreeData(data)
+    chart.updateData(treeData)
+    chart.updateTree({ initial: false, tree_position: 'inherit' })
   }, [data])
 
   return <div ref={containerRef} className="tree-canvas" style={{ width: '100%', height: '100%' }} />
@@ -104,8 +118,6 @@ function hideSyntheticRoot(root: HTMLElement) {
 type LinkDatum = {
   id?: string
   spouse?: boolean
-  source?: { data?: { data?: { divorced?: boolean } } } | Array<{ data?: { data?: { divorced?: boolean } } }>
-  target?: { data?: { data?: { divorced?: boolean } } } | Array<{ data?: { data?: { divorced?: boolean } } }>
 }
 
 function tagLinks(root: HTMLElement, data: FamilyData) {
@@ -119,6 +131,8 @@ function tagLinks(root: HTMLElement, data: FamilyData) {
       const ids = (datum.id ?? '').split(',').map((s) => s.trim())
       if (ids.length === 2 && ids.every((id) => divorcedIds.has(id))) {
         path.classList.add('divorced')
+      } else {
+        path.classList.remove('divorced')
       }
     } else {
       path.classList.add('parent-link')
@@ -129,7 +143,7 @@ function tagLinks(root: HTMLElement, data: FamilyData) {
 /**
  * Janet is shown as Alex's spouse-card (to avoid a duplicate Janet), which
  * means family-chart draws no line from her to her biological parents
- * Gong Gong + Po Po. We overlay a dashed curve to preserve that link.
+ * Gong Gong + Po Po. We overlay a curve matching the default link style.
  */
 function drawBridgeLinks(chart: any, el: HTMLElement) {
   const tree = chart.store?.getTree?.()

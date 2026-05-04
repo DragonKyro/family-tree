@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/family-chart.d.ts","./src/main.tsx","./src/types.ts","./src/components/detailspanel.tsx","./src/components/familytree.tsx","./src/components/searchbox.tsx","./src/lib/familydata.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/family-chart.d.ts","./src/main.tsx","./src/types.ts","./src/components/detailspanel.tsx","./src/components/editdialog.tsx","./src/components/familytree.tsx","./src/components/logingate.tsx","./src/components/searchbox.tsx","./src/lib/auth.ts","./src/lib/familydata.ts","./src/lib/formatters.ts"],"version":"5.9.3"}
