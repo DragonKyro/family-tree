@@ -1,0 +1,40 @@
+[
+  {
+    "id": "placeholder-1",
+    "main": true,
+    "data": {
+      "first_name": "Add",
+      "last_name": "People",
+      "gender": "M",
+      "notes": "Replace this placeholder record with real family data."
+    },
+    "rels": {
+      "spouses": ["placeholder-2"],
+      "children": ["placeholder-3"]
+    }
+  },
+  {
+    "id": "placeholder-2",
+    "data": {
+      "first_name": "Describe",
+      "last_name": "Family",
+      "gender": "F"
+    },
+    "rels": {
+      "spouses": ["placeholder-1"],
+      "children": ["placeholder-3"]
+    }
+  },
+  {
+    "id": "placeholder-3",
+    "data": {
+      "first_name": "To",
+      "last_name": "Claude",
+      "gender": "M"
+    },
+    "rels": {
+      "father": "placeholder-1",
+      "mother": "placeholder-2"
+    }
+  }
+]
