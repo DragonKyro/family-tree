@@ -29,7 +29,11 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
       <h2>{fullName(person)}</h2>
       <div className="muted">
         {person.data.birthday || '—'}
-        {person.data.deathday ? ` · † ${person.data.deathday}` : ''}
+        {person.data.deathday
+          ? ` · † ${person.data.deathday}`
+          : person.data.deceased
+            ? ' · †'
+            : ''}
       </div>
 
       <dl>

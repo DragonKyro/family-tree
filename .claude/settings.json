@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"app: HTTP %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"FamilyTree.tsx: HTTP %{http_code}\\\\n\" http://localhost:5173/src/components/FamilyTree.tsx)",
+      "Bash(curl -s -o /dev/null -w \"familyData.ts: HTTP %{http_code}\\\\n\" http://localhost:5173/src/lib/familyData.ts)"
+    ]
+  }
+}

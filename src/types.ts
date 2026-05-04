@@ -5,9 +5,12 @@ export interface PersonData {
   last_name: string
   birthday?: string
   deathday?: string
+  deceased?: boolean
+  divorced?: boolean
   gender: Gender
   avatar?: string
   notes?: string
+  branch?: 'immediate' | 'lui' | 'shum' | 'placeholder'
   [key: string]: unknown
 }
 

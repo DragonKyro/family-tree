@@ -2,27 +2,31 @@ import { useMemo, useState } from 'react'
 import { FamilyTree } from './components/FamilyTree'
 import { DetailsPanel } from './components/DetailsPanel'
 import { SearchBox } from './components/SearchBox'
-import { findById, loadFamily, pickMainId } from './lib/familyData'
+import { loadFamily } from './lib/familyData'
 import type { Person } from './types'
 
 export default function App() {
   const data = useMemo(() => loadFamily(), [])
-  const initialMainId = useMemo(() => pickMainId(data), [data])
-  const [mainId, setMainId] = useState<string | undefined>(initialMainId)
+  const [selected, setSelected] = useState<Person | null>(null)
 
-  const selected: Person | null = (mainId && findById(data, mainId)) || null
-
-  const handleSelect = (person: Person) => setMainId(person.id)
+  const handleSelect = (person: Person) => setSelected(person)
 
   return (
     <div className="app">
       <header className="app-header">
         <h1 className="app-title">Lui + Shum Family Tree</h1>
+        <div className="legend">
+          <span className="legend-item"><span className="legend-swatch immediate" />Immediate</span>
+          <span className="legend-item"><span className="legend-swatch lui" />Lui side</span>
+          <span className="legend-item"><span className="legend-swatch shum" />Shum side</span>
+          <span className="legend-item"><span className="legend-swatch marriage" />Marriage</span>
+          <span className="legend-item"><span className="legend-swatch divorce" />Divorce</span>
+        </div>
         <div className="spacer" />
         <SearchBox data={data} onSelect={handleSelect} />
       </header>
       <main className="tree-area">
-        <FamilyTree data={data} mainId={mainId} onSelect={handleSelect} />
+        <FamilyTree data={data} onSelect={handleSelect} />
       </main>
       <DetailsPanel person={selected} data={data} onSelect={handleSelect} />
     </div>
