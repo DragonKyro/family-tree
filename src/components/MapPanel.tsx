@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { FamilyData, Person } from '../types'
-import { fullName, isSynthetic } from '../lib/familyData'
+import { fullName, isSynthetic, resolvePhotoUrl } from '../lib/familyData'
 import { geocodeTown } from '../lib/geocode'
 
 interface Props {
@@ -104,9 +104,9 @@ export default function MapPanel({ data, onClose, onSelectPerson }: Props) {
     for (const { person, coords, town } of pins) {
       const branch = person.data.branch ?? 'shum'
       const color = BRANCH_COLORS[branch] ?? '#9aa0a6'
-      const avatar = typeof person.data.avatar === 'string' ? person.data.avatar : ''
-      const inner = avatar
-        ? `<img src="${escapeHtml(avatar)}" alt="" />`
+      const avatarUrl = resolvePhotoUrl(person.data.avatar)
+      const inner = avatarUrl
+        ? `<img src="${escapeHtml(avatarUrl)}" alt="" />`
         : `<span class="map-pin-initials">${escapeHtml(initials(person))}</span>`
       const icon = L.divIcon({
         className: 'map-pin-wrapper',

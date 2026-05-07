@@ -334,7 +334,9 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
           {d.current_job && (
             <Row label={<><span aria-hidden>🏢</span> Employer</>}>{d.current_job}</Row>
           )}
-          {d.current_role && <Row label="Role">{d.current_role}</Row>}
+          {d.current_role && (
+            <Row label={<><span aria-hidden>💼</span> Role</>}>{d.current_role}</Row>
+          )}
         </Section>
       )}
 
