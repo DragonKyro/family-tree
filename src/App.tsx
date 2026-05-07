@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { FamilyTree, type LayoutNode } from './components/FamilyTree'
 import { DetailsPanel } from './components/DetailsPanel'
 import { SearchBox } from './components/SearchBox'
@@ -6,10 +6,14 @@ import { CalendarPanel } from './components/CalendarPanel'
 import { RelationshipPanel, type RelationshipPanelHandle } from './components/RelationshipPanel'
 import { MiniMap } from './components/MiniMap'
 import { findById, isSynthetic, loadFamily } from './lib/familyData'
+import { upcomingHoliday } from './lib/holidays'
 import type { Person } from './types'
 
+// Leaflet is ~150 KB — only ship it when the user opens the map.
+const MapPanel = lazy(() => import('./components/MapPanel'))
+
 type Theme = 'dark' | 'light'
-type Tool = null | 'calendar' | 'relationship'
+type Tool = null | 'calendar' | 'relationship' | 'map'
 
 const THEME_KEY = 'family-tree-theme'
 
@@ -30,6 +34,7 @@ export default function App() {
   const [layoutNodes, setLayoutNodes] = useState<LayoutNode[]>([])
   const [theme, setTheme] = useState<Theme>(readInitialTheme)
   const [tool, setTool] = useState<Tool>(null)
+  const [panelCollapsed, setPanelCollapsed] = useState(false)
   const relPanelRef = useRef<RelationshipPanelHandle | null>(null)
 
   useEffect(() => {
@@ -59,8 +64,22 @@ export default function App() {
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   const toggleTool = (t: NonNullable<Tool>) => setTool((cur) => (cur === t ? null : t))
 
+  // Subtle holiday badge in the header for the next 14 days.
+  const nextHoliday = useMemo(() => upcomingHoliday(new Date(), 14), [])
+  const nextHolidayLabel = useMemo(() => {
+    if (!nextHoliday) return null
+    const now = new Date()
+    const isToday =
+      nextHoliday.date.getFullYear() === now.getFullYear() &&
+      nextHoliday.date.getMonth() === now.getMonth() &&
+      nextHoliday.date.getDate() === now.getDate()
+    return isToday
+      ? 'Today'
+      : nextHoliday.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  }, [nextHoliday])
+
   return (
-    <div className="app">
+    <div className={`app${panelCollapsed ? ' panel-collapsed' : ''}`}>
       <header className="app-header">
         <h1 className="app-title">Lui + Shum Family Tree</h1>
         <div className="legend">
@@ -73,6 +92,16 @@ export default function App() {
           <span className="legend-item"><span className="legend-swatch divorce" />Divorce</span>
         </div>
         <div className="spacer" />
+        {nextHoliday && nextHolidayLabel && (
+          <span
+            className="holiday-badge"
+            title={`${nextHoliday.holiday.name} — ${nextHolidayLabel === 'Today' ? 'today' : nextHolidayLabel}`}
+          >
+            <span aria-hidden>{nextHoliday.holiday.emoji}</span>
+            <span className="holiday-badge-name">{nextHoliday.holiday.name}</span>
+            <span className="holiday-badge-date">{nextHolidayLabel}</span>
+          </span>
+        )}
         <SearchBox data={data} onSelect={handleSelect} />
         <button
           type="button"
@@ -107,6 +136,15 @@ export default function App() {
           >
             <RelationshipIcon />
           </button>
+          <button
+            type="button"
+            className={`tool-btn ${tool === 'map' ? 'active' : ''}`}
+            onClick={() => toggleTool('map')}
+            aria-label="Family map"
+            title="Family map"
+          >
+            <MapIcon />
+          </button>
         </div>
 
         {tool === 'calendar' && (
@@ -124,8 +162,19 @@ export default function App() {
             onClose={() => setTool(null)}
           />
         )}
+        {tool === 'map' && (
+          <Suspense fallback={<div className="tool-panel map-panel map-loading">Loading map…</div>}>
+            <MapPanel data={data} onClose={() => setTool(null)} onSelectPerson={handleSelect} />
+          </Suspense>
+        )}
       </main>
-      <DetailsPanel person={selected} data={data} onSelect={handleSelect} />
+      <DetailsPanel
+        person={selected}
+        data={data}
+        onSelect={handleSelect}
+        collapsed={panelCollapsed}
+        onToggleCollapse={() => setPanelCollapsed((c) => !c)}
+      />
     </div>
   )
 }
@@ -148,6 +197,15 @@ function RelationshipIcon() {
       <circle cx="17" cy="9" r="3" />
       <path d="M2 20c0-3 2.5-5 5-5s5 2 5 5" />
       <path d="M12 20c0-3 2.5-5 5-5s5 2 5 5" />
+    </svg>
+  )
+}
+
+function MapIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z" />
+      <circle cx="12" cy="9" r="2.5" />
     </svg>
   )
 }

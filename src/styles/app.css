@@ -72,6 +72,11 @@ button {
     "header header"
     "tree   panel";
   height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.app.panel-collapsed {
+  grid-template-columns: 1fr 36px;
 }
 
 .app-header {
@@ -113,6 +118,46 @@ button {
   border-left: 1px solid var(--border);
   padding: 0;
   overflow-y: auto;
+  position: relative;
+}
+
+.side-panel-collapsed {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.panel-toggle {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-bg);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 0;
+}
+.panel-toggle:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.side-panel-collapsed .panel-toggle {
+  position: static;
+  width: 24px;
+  height: 28px;
+  font-size: 16px;
 }
 
 .side-panel-top {
@@ -545,15 +590,23 @@ button {
   border-color: var(--accent);
   background: var(--bg);
 }
-.calendar-day .bday-dot {
+.calendar-day .day-marks {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  min-height: 5px;
+}
+.calendar-day .bday-dot,
+.calendar-day .holiday-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent);
   display: inline-block;
 }
-.calendar-day.today.has-bday .bday-dot,
-.calendar-day.selected .bday-dot { background: var(--accent); }
+.calendar-day .bday-dot { background: var(--accent); }
+.calendar-day .holiday-dot { background: var(--branch-immediate); }
+.calendar-day.has-holiday .day-num { font-weight: 600; }
 
 .calendar-people {
   border-top: 1px solid var(--border);
@@ -574,6 +627,17 @@ button {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+.calendar-holiday {
+  font-size: 14px;
+  padding: 6px 8px;
+  margin: 4px -8px;
+  border-radius: 6px;
+  background: rgba(227, 181, 57, 0.12);
+  color: var(--text);
+}
+:root[data-theme='light'] .calendar-holiday {
+  background: rgba(212, 160, 23, 0.14);
 }
 .calendar-person {
   display: flex;
@@ -790,6 +854,114 @@ button {
 .rel-jyutping {
   color: var(--muted);
   font-size: 12px;
+}
+
+/* ---------- Map panel ---------- */
+
+.tool-panel.map-panel {
+  width: 460px;
+  height: 380px;
+}
+.map-panel .map-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--panel-bg-alt);
+}
+
+/* Avatar pins (Find My-style circular face markers). */
+.map-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+.map-pin {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  background: var(--panel-bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+.map-pin:hover {
+  transform: scale(1.12);
+  z-index: 1000;
+}
+.map-pin img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.map-pin-initials {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.map-panel .map-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+}
+.map-panel .muted { color: var(--muted); }
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 14px;
+  height: 200px;
+}
+/* Leaflet attribution dark-mode tweak */
+:root .leaflet-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+}
+:root:not([data-theme='light']) .leaflet-container .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6);
+  color: #d6dae0;
+}
+:root:not([data-theme='light']) .leaflet-container .leaflet-control-attribution a {
+  color: #9bbbe6;
+}
+
+/* ---------- Holiday badge in header ---------- */
+
+.holiday-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(227, 181, 57, 0.16);
+  color: var(--text);
+  font-size: 12px;
+  cursor: default;
+}
+:root[data-theme='light'] .holiday-badge {
+  background: rgba(212, 160, 23, 0.18);
+}
+.holiday-badge-name {
+  font-weight: 500;
+}
+.holiday-badge-date {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
+}
+@media (max-width: 1100px) {
+  .holiday-badge-name { display: none; }
+  .holiday-badge-date { border-left: none; padding-left: 0; }
 }
 
 /* ---------- Lightbox ---------- */

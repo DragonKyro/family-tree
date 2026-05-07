@@ -40,6 +40,8 @@ export interface PersonData {
   grad_school_grad_year?: string
   grad_school_degree?: string
   current_town?: string
+  /** Optional pre-set [lat, lng] — overrides geocoding `current_town`. */
+  coords?: [number, number]
   current_job?: string
   current_role?: string
   interests?: string

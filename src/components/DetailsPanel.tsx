@@ -30,9 +30,11 @@ interface Props {
   person: Person | null
   data: FamilyData
   onSelect: (person: Person) => void
+  collapsed: boolean
+  onToggleCollapse: () => void
 }
 
-export function DetailsPanel({ person, data, onSelect }: Props) {
+export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollapse }: Props) {
   const [lightbox, setLightbox] = useState(false)
 
   // Close any open lightbox when the focused person changes.
@@ -40,9 +42,34 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
     setLightbox(false)
   }, [person?.id])
 
+  if (collapsed) {
+    return (
+      <aside className="side-panel side-panel-collapsed" aria-label="Info panel (collapsed)">
+        <button
+          type="button"
+          className="panel-toggle"
+          onClick={onToggleCollapse}
+          aria-label="Expand info panel"
+          title="Expand info panel"
+        >
+          ‹
+        </button>
+      </aside>
+    )
+  }
+
   if (!person) {
     return (
       <aside className="side-panel">
+        <button
+          type="button"
+          className="panel-toggle"
+          onClick={onToggleCollapse}
+          aria-label="Collapse info panel"
+          title="Collapse info panel"
+        >
+          ›
+        </button>
         <p className="empty-state">Click a person in the tree to see details.</p>
       </aside>
     )
@@ -61,6 +88,15 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
 
   return (
     <aside className="side-panel">
+      <button
+        type="button"
+        className="panel-toggle"
+        onClick={onToggleCollapse}
+        aria-label="Collapse info panel"
+        title="Collapse info panel"
+      >
+        ›
+      </button>
       <div className="side-panel-top">
         <div className="side-panel-avatar">
           {d.avatar ? (
