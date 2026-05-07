@@ -51,6 +51,10 @@
 
 * { box-sizing: border-box; }
 
+/* Mobile/desktop visibility helpers — flipped inside the responsive media query. */
+.mobile-only { display: none !important; }
+.desktop-only { display: revert; }
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -72,6 +76,11 @@ button {
     "header header"
     "tree   panel";
   height: 100vh;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.app.panel-collapsed {
+  grid-template-columns: 1fr 36px;
 }
 
 .app-header {
@@ -113,6 +122,46 @@ button {
   border-left: 1px solid var(--border);
   padding: 0;
   overflow-y: auto;
+  position: relative;
+}
+
+.side-panel-collapsed {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.panel-toggle {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel-bg);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 0;
+}
+.panel-toggle:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.side-panel-collapsed .panel-toggle {
+  position: static;
+  width: 24px;
+  height: 28px;
+  font-size: 16px;
 }
 
 .side-panel-top {
@@ -368,6 +417,9 @@ button {
 .legend-swatch.shum { border: 2.5px solid var(--branch-shum); }
 /* Pet swatch: solid fill — pets keep their family border on the actual card. */
 .legend-swatch.pet { background: var(--branch-pet); }
+/* Gender swatches mirror family-chart's default card fills (.f3 .card-male/.card-female). */
+.legend-swatch.male { background: rgb(120, 159, 172); }
+.legend-swatch.female { background: rgb(196, 138, 146); }
 .legend-swatch.deceased {
   background: var(--muted);
   filter: grayscale(0.7) brightness(0.78);
@@ -545,15 +597,23 @@ button {
   border-color: var(--accent);
   background: var(--bg);
 }
-.calendar-day .bday-dot {
+.calendar-day .day-marks {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  min-height: 5px;
+}
+.calendar-day .bday-dot,
+.calendar-day .holiday-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent);
   display: inline-block;
 }
-.calendar-day.today.has-bday .bday-dot,
-.calendar-day.selected .bday-dot { background: var(--accent); }
+.calendar-day .bday-dot { background: var(--accent); }
+.calendar-day .holiday-dot { background: var(--branch-immediate); }
+.calendar-day.has-holiday .day-num { font-weight: 600; }
 
 .calendar-people {
   border-top: 1px solid var(--border);
@@ -574,6 +634,17 @@ button {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+.calendar-holiday {
+  font-size: 14px;
+  padding: 6px 8px;
+  margin: 4px -8px;
+  border-radius: 6px;
+  background: rgba(227, 181, 57, 0.12);
+  color: var(--text);
+}
+:root[data-theme='light'] .calendar-holiday {
+  background: rgba(212, 160, 23, 0.14);
 }
 .calendar-person {
   display: flex;
@@ -792,6 +863,114 @@ button {
   font-size: 12px;
 }
 
+/* ---------- Map panel ---------- */
+
+.tool-panel.map-panel {
+  width: 460px;
+  height: 380px;
+}
+.map-panel .map-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--panel-bg-alt);
+}
+
+/* Avatar pins (Find My-style circular face markers). */
+.map-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+.map-pin {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  background: var(--panel-bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition: transform 0.15s ease;
+  cursor: pointer;
+}
+.map-pin:hover {
+  transform: scale(1.12);
+  z-index: 1000;
+}
+.map-pin img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.map-pin-initials {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.map-panel .map-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text);
+}
+.map-panel .muted { color: var(--muted); }
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 14px;
+  height: 200px;
+}
+/* Leaflet attribution dark-mode tweak */
+:root .leaflet-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+}
+:root:not([data-theme='light']) .leaflet-container .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.6);
+  color: #d6dae0;
+}
+:root:not([data-theme='light']) .leaflet-container .leaflet-control-attribution a {
+  color: #9bbbe6;
+}
+
+/* ---------- Holiday badge in header ---------- */
+
+.holiday-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(227, 181, 57, 0.16);
+  color: var(--text);
+  font-size: 12px;
+  cursor: default;
+}
+:root[data-theme='light'] .holiday-badge {
+  background: rgba(212, 160, 23, 0.18);
+}
+.holiday-badge-name {
+  font-weight: 500;
+}
+.holiday-badge-date {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
+}
+@media (max-width: 1100px) {
+  .holiday-badge-name { display: none; }
+  .holiday-badge-date { border-left: none; padding-left: 0; }
+}
+
 /* ---------- Lightbox ---------- */
 
 .lightbox-backdrop {
@@ -855,3 +1034,213 @@ button {
 /* Default (dark): cards stay light-colored for readability against dark bg.
    In dark mode the synthetic-root's inner-card background can leak through
    transparency edges; explicitly color them to avoid an odd "bright spot". */
+
+/* ---------- Header menu toggle (hamburger) — hidden on desktop ---------- */
+
+.header-menu-toggle {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-menu-toggle:hover { background: var(--bg); }
+
+.header-controls {
+  display: contents;
+}
+
+.panel-close {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 0;
+}
+.panel-close:hover { background: var(--bg); }
+
+/* ---------- Responsive: phone / portrait ---------- */
+
+@media (max-width: 700px) {
+  /* Visibility helper flip. */
+  .mobile-only { display: revert !important; }
+  .desktop-only { display: none !important; }
+
+  /* Single-column grid — the side panel becomes a bottom sheet outside the grid. */
+  .app,
+  .app.panel-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "tree";
+  }
+
+  /* Header: title shrinks, controls become a dropdown sheet. */
+  .app-header {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .app-title {
+    font-size: 15px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-controls {
+    display: none;
+    position: absolute;
+    top: 56px;
+    left: 8px;
+    right: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    z-index: 210;
+  }
+  .app.header-menu-open .header-controls {
+    display: flex;
+  }
+  .header-controls .spacer { display: none; }
+  .header-controls .legend {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .header-controls .search-box {
+    width: 100%;
+  }
+  .header-controls .holiday-badge-name {
+    display: inline; /* show full name in the dropdown even though desktop hides it < 1100px */
+  }
+  .header-controls .holiday-badge-date {
+    border-left: 1px solid var(--border);
+    padding-left: 4px;
+  }
+  .header-controls .theme-toggle {
+    align-self: flex-start;
+  }
+
+  .header-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 200;
+  }
+
+  /* Side panel becomes a bottom sheet. Hidden when no person selected. */
+  .side-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 72vh;
+    max-height: 72vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.32);
+    z-index: 90;
+    transform: translateY(100%);
+    transition: transform 0.22s ease;
+  }
+  .side-panel.side-panel-has-person {
+    transform: translateY(0);
+  }
+  /* Empty state and the "collapsed" desktop variant don't apply on mobile. */
+  .side-panel.side-panel-empty,
+  .side-panel.side-panel-collapsed {
+    display: none;
+  }
+
+  /* Visual handle bar at the top of the bottom sheet. */
+  .side-panel.side-panel-has-person::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+    pointer-events: none;
+  }
+  .side-panel-top { padding-top: 26px; }
+
+  /* Tool panels: full-width bottom sheets, above the details sheet. */
+  .tool-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-width: none;
+    height: 70vh;
+    max-height: 70vh;
+    border-radius: 14px;
+    z-index: 110;
+  }
+  .tool-panel.map-panel {
+    width: auto;
+    height: 70vh;
+  }
+
+  /* Tool buttons: slightly tighter, still top-left. */
+  .tool-buttons {
+    top: 10px;
+    left: 10px;
+    gap: 6px;
+  }
+  .tool-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+  }
+
+  /* MiniMap: shrink so it doesn't dominate. */
+  .minimap {
+    left: 10px;
+    bottom: 10px;
+    width: 120px;
+    height: 84px;
+  }
+
+  /* Calendar / relationship panel internals — slightly tighter. */
+  .calendar-people { max-height: 28vh; }
+  .rel-row {
+    grid-template-columns: 1fr;
+  }
+  .rel-arrow {
+    text-align: center;
+    padding-bottom: 0;
+    transform: rotate(90deg);
+  }
+}

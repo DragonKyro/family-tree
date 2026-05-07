@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FamilyData, Person } from '../types'
 import { fullName } from '../lib/familyData'
+import { holidaysOn } from '../lib/holidays'
 
 interface Props {
   data: FamilyData
@@ -86,6 +87,8 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
   const selectedKey =
     selectedDay != null ? `${pad2(view.month + 1)}-${pad2(selectedDay)}` : null
   const selectedPeople = selectedKey ? byDate.get(selectedKey) ?? [] : []
+  const selectedHolidays =
+    selectedDay != null ? holidaysOn(view.year, view.month + 1, selectedDay) : []
 
   return (
     <div className="tool-panel calendar-panel" role="dialog" aria-label="Birthday calendar">
@@ -106,6 +109,8 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
       <div className="calendar-grid">
         {cells.map((c, idx) => {
           const hasBday = !c.outside && byDate.has(c.key)
+          const cellHolidays = c.outside ? [] : holidaysOn(view.year, view.month + 1, c.day)
+          const hasHoliday = cellHolidays.length > 0
           const isToday =
             !c.outside &&
             view.year === today.getFullYear() &&
@@ -117,6 +122,7 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
             c.outside ? 'outside' : '',
             isToday ? 'today' : '',
             hasBday ? 'has-bday' : '',
+            hasHoliday ? 'has-holiday' : '',
             isSelected ? 'selected' : '',
           ].filter(Boolean).join(' ')
           return (
@@ -126,21 +132,34 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
               onClick={() => !c.outside && setSelectedDay(c.day)}
               disabled={c.outside}
               aria-label={`${MONTH_NAMES[view.month]} ${c.day}`}
+              title={hasHoliday ? cellHolidays.map((h) => h.name).join(', ') : undefined}
             >
               <span className="day-num">{c.day}</span>
-              {hasBday && <span className="bday-dot" aria-hidden />}
+              <span className="day-marks" aria-hidden>
+                {hasHoliday && <span className="holiday-dot" />}
+                {hasBday && <span className="bday-dot" />}
+              </span>
             </button>
           )
         })}
       </div>
 
       <div className="calendar-people">
-        {selectedPeople.length > 0 ? (
+        {selectedDay != null && (
           <>
             <h4>
               {MONTH_NAMES[view.month]} {selectedDay}
-              <span className="muted"> · {selectedPeople.length}</span>
+              {selectedPeople.length > 0 && (
+                <span className="muted"> · {selectedPeople.length}</span>
+              )}
             </h4>
+
+            {selectedHolidays.map((h) => (
+              <div key={h.name} className="calendar-holiday">
+                <span aria-hidden>{h.emoji}</span> {h.name}
+              </div>
+            ))}
+
             {selectedPeople.map((p) => {
               const meta = ageLine(p, view.year)
               return (
@@ -153,10 +172,12 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
                 </button>
               )
             })}
+
+            {selectedPeople.length === 0 && selectedHolidays.length === 0 && (
+              <p className="calendar-empty">Nothing on this day.</p>
+            )}
           </>
-        ) : selectedDay != null ? (
-          <p className="calendar-empty">No birthdays on this day.</p>
-        ) : null}
+        )}
       </div>
     </div>
   )

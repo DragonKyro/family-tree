@@ -73,6 +73,15 @@ One record per person. `id` is stable and referenced by `rels`.
     college, college_grad_year, college_degree,
     grad_school, grad_school_grad_year, grad_school_degree,
     current_town, current_job, current_role, interests,
+    chinese_name,                     // free text, rendered in muted alias line under English name
+    nickname,                         // free text, rendered in quotes in the alias line
+    languages,                        // string[] — joined by ', ' on display
+    religion,                         // 'Christian' | 'Catholic' | 'Buddhist' | 'Taoist' | 'Muslim' | 'Jewish' | 'Hindu' | 'Sikh' | 'Atheist' | 'Agnostic' | 'None'
+    pronouns,                         // 'he/him' | 'she/her' | 'they/them' | 'he/they' | 'she/they' | 'any'
+    sex,                              // 'male' | 'female' | 'intersex'  (independent of `gender`, which drives card color + kinship)
+    sexuality,                        // 'straight' | 'gay' | 'lesbian' | 'bisexual' | 'pansexual' | 'asexual' | 'queer'
+    mbti,                             // 'ISTJ' | 'ISFJ' | … (any of the 16 MBTI codes, uppercase)
+    relationship_status,              // 'single' | 'situationship' | 'dating' | 'engaged' | 'married' | 'divorced' | 'widowed'
     social: {                          // optional; any subset of supported keys
       instagram: "kyle31412",          // bare handle; @ stripped, auto-linked
       linkedin:  "kyle-lui",           // → linkedin.com/in/kyle-lui

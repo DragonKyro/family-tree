@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
-import type { FamilyData, Person, SocialPlatform } from '../types'
+import type {
+  FamilyData,
+  Person,
+  Pronouns,
+  Religion,
+  RelationshipStatus,
+  Sex,
+  Sexuality,
+  SocialPlatform,
+} from '../types'
 import { findById, fullName, resolvePhotoUrl } from '../lib/familyData'
-import { formatDisplayDate, mailtoHref, telHref } from '../lib/formatters'
+import { formatDisplayDate, formatInterests, mailtoHref, telHref } from '../lib/formatters'
 import { getAgeText, getAstrology } from '../lib/astrology'
 import { LightboxImage } from './LightboxImage'
 
@@ -9,6 +18,55 @@ interface SocialMeta {
   label: string
   emoji: string
   urlFor?: (handle: string) => string
+}
+
+const PRONOUN_EMOJI: Record<Pronouns, string> = {
+  'he/him': '👨',
+  'she/her': '👩',
+  'they/them': '🧑',
+  'he/they': '👨',
+  'she/they': '👩',
+  'any': '🧑',
+}
+
+const SEX_EMOJI: Record<Sex, string> = {
+  male: '♂',
+  female: '♀',
+  intersex: '⚥',
+}
+
+const SEXUALITY_EMOJI: Record<Sexuality, string> = {
+  straight: '❤️',
+  gay: '🏳️‍🌈',
+  lesbian: '🏳️‍🌈',
+  bisexual: '🏳️‍🌈',
+  pansexual: '🏳️‍🌈',
+  asexual: '🏳️‍🌈',
+  queer: '🏳️‍🌈',
+}
+
+const RELIGION_EMOJI: Record<Religion, string> = {
+  Christian: '✝️',
+  Catholic: '⛪',
+  Buddhist: '☸️',
+  Taoist: '☯️',
+  Muslim: '☪️',
+  Jewish: '✡️',
+  Hindu: '🕉️',
+  Sikh: '🪯',
+  Atheist: '',
+  Agnostic: '',
+  None: '',
+}
+
+const RELATIONSHIP_EMOJI: Record<RelationshipStatus, string> = {
+  single: '🧍',
+  situationship: '💭',
+  dating: '💞',
+  engaged: '💍',
+  married: '💒',
+  divorced: '💔',
+  widowed: '🕊️',
 }
 
 const SOCIAL_PLATFORMS: Array<{ key: SocialPlatform } & SocialMeta> = [
@@ -30,9 +88,12 @@ interface Props {
   person: Person | null
   data: FamilyData
   onSelect: (person: Person) => void
+  collapsed: boolean
+  onToggleCollapse: () => void
+  onClose?: () => void
 }
 
-export function DetailsPanel({ person, data, onSelect }: Props) {
+export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollapse, onClose }: Props) {
   const [lightbox, setLightbox] = useState(false)
 
   // Close any open lightbox when the focused person changes.
@@ -40,9 +101,34 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
     setLightbox(false)
   }, [person?.id])
 
+  if (collapsed) {
+    return (
+      <aside className="side-panel side-panel-collapsed" aria-label="Info panel (collapsed)">
+        <button
+          type="button"
+          className="panel-toggle"
+          onClick={onToggleCollapse}
+          aria-label="Expand info panel"
+          title="Expand info panel"
+        >
+          ‹
+        </button>
+      </aside>
+    )
+  }
+
   if (!person) {
     return (
-      <aside className="side-panel">
+      <aside className="side-panel side-panel-empty">
+        <button
+          type="button"
+          className="panel-toggle desktop-only"
+          onClick={onToggleCollapse}
+          aria-label="Collapse info panel"
+          title="Collapse info panel"
+        >
+          ›
+        </button>
         <p className="empty-state">Click a person in the tree to see details.</p>
       </aside>
     )
@@ -57,10 +143,32 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
   const d = person.data
   const ageText = getAgeText(d)
   const astro = getAstrology(d.birthday)
-  const subtitle = [dateRange(d), ageText, d.current_town].filter(Boolean).join(' · ')
+  const subtitle = [dateRange(d), ageText, d.current_town && `📍 ${d.current_town}`]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <aside className="side-panel">
+    <aside className="side-panel side-panel-has-person">
+      <button
+        type="button"
+        className="panel-toggle desktop-only"
+        onClick={onToggleCollapse}
+        aria-label="Collapse info panel"
+        title="Collapse info panel"
+      >
+        ›
+      </button>
+      {onClose && (
+        <button
+          type="button"
+          className="panel-close mobile-only"
+          onClick={onClose}
+          aria-label="Close info panel"
+          title="Close"
+        >
+          ✕
+        </button>
+      )}
       <div className="side-panel-top">
         <div className="side-panel-avatar">
           {d.avatar ? (
@@ -80,9 +188,68 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
         </div>
         <div className="side-panel-title">
           <h2>{fullName(person)}</h2>
+          {(d.nickname || d.chinese_name) && (
+            <div className="muted name-aliases">
+              {d.nickname && <span>"{d.nickname}"</span>}
+              {d.nickname && d.chinese_name && ' · '}
+              {d.chinese_name && <span lang="zh">{d.chinese_name}</span>}
+            </div>
+          )}
           {subtitle && <div className="muted">{subtitle}</div>}
         </div>
       </div>
+
+      {(d.pronouns ||
+        d.sex ||
+        d.sexuality ||
+        d.religion ||
+        (d.languages && d.languages.length > 0) ||
+        d.mbti ||
+        d.relationship_status) && (
+        <Section title="Personal">
+          {d.pronouns && (
+            <Row label="Pronouns">
+              <span aria-hidden>{PRONOUN_EMOJI[d.pronouns]}</span> {d.pronouns}
+            </Row>
+          )}
+          {d.sex && (
+            <Row label="Sex">
+              <span aria-hidden>{SEX_EMOJI[d.sex]}</span> {capitalize(d.sex)}
+            </Row>
+          )}
+          {d.sexuality && (
+            <Row label="Sexuality">
+              <span aria-hidden>{SEXUALITY_EMOJI[d.sexuality]}</span> {capitalize(d.sexuality)}
+            </Row>
+          )}
+          {d.religion && (
+            <Row label="Religion">
+              {RELIGION_EMOJI[d.religion] && (
+                <>
+                  <span aria-hidden>{RELIGION_EMOJI[d.religion]}</span>{' '}
+                </>
+              )}
+              {d.religion}
+            </Row>
+          )}
+          {d.languages && d.languages.length > 0 && (
+            <Row label="Languages">
+              <span aria-hidden>🗣️</span> {d.languages.join(', ')}
+            </Row>
+          )}
+          {d.mbti && (
+            <Row label="MBTI">
+              <span aria-hidden>🧠</span> {d.mbti}
+            </Row>
+          )}
+          {d.relationship_status && (
+            <Row label="Status">
+              <span aria-hidden>{RELATIONSHIP_EMOJI[d.relationship_status]}</span>{' '}
+              {capitalize(d.relationship_status)}
+            </Row>
+          )}
+        </Section>
+      )}
 
       {astro && (
         <Section title="Born under">
@@ -106,12 +273,12 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
       {(hasAny(d, ['phone', 'email']) || hasSocial(d.social)) && (
         <Section title="Contact">
           {d.phone && (
-            <Row label="Phone">
+            <Row label={<><span aria-hidden>📞</span> Phone</>}>
               <a href={telHref(d.phone)}>{d.phone}</a>
             </Row>
           )}
           {d.email && (
-            <Row label="Email">
+            <Row label={<><span aria-hidden>✉️</span> Email</>}>
               <a href={mailtoHref(d.email)}>{d.email}</a>
             </Row>
           )}
@@ -139,29 +306,41 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
       ]) && (
         <Section title="Education">
           {(d.high_school || d.high_school_grad_year) && (
-            <Row label="High school">{schoolLine(d.high_school, d.high_school_grad_year)}</Row>
+            <Row label={<><span aria-hidden>🏫</span> High school</>}>
+              {schoolLine(d.high_school, d.high_school_grad_year)}
+            </Row>
           )}
           {(d.college || d.college_grad_year) && (
-            <Row label="College">{schoolLine(d.college, d.college_grad_year)}</Row>
+            <Row label={<><span aria-hidden>🎓</span> College</>}>
+              {schoolLine(d.college, d.college_grad_year)}
+            </Row>
           )}
-          {d.college_degree && <Row label="Degree">{d.college_degree}</Row>}
+          {d.college_degree && (
+            <Row label={<><span aria-hidden>📜</span> Degree</>}>{d.college_degree}</Row>
+          )}
           {(d.grad_school || d.grad_school_grad_year) && (
-            <Row label="Grad school">{schoolLine(d.grad_school, d.grad_school_grad_year)}</Row>
+            <Row label={<><span aria-hidden>🎓</span> Grad school</>}>
+              {schoolLine(d.grad_school, d.grad_school_grad_year)}
+            </Row>
           )}
-          {d.grad_school_degree && <Row label="Grad degree">{d.grad_school_degree}</Row>}
+          {d.grad_school_degree && (
+            <Row label={<><span aria-hidden>📜</span> Grad degree</>}>{d.grad_school_degree}</Row>
+          )}
         </Section>
       )}
 
       {hasAny(d, ['current_job', 'current_role']) && (
         <Section title="Work">
-          {d.current_job && <Row label="Employer">{d.current_job}</Row>}
+          {d.current_job && (
+            <Row label={<><span aria-hidden>🏢</span> Employer</>}>{d.current_job}</Row>
+          )}
           {d.current_role && <Row label="Role">{d.current_role}</Row>}
         </Section>
       )}
 
       {d.interests && (
         <Section title="Interests">
-          <div className="long-text">{d.interests}</div>
+          <div className="long-text">{formatInterests(d.interests)}</div>
         </Section>
       )}
 
@@ -227,6 +406,10 @@ function computeSiblings(data: FamilyData, person: Person): Person[] {
     }
   }
   return out
+}
+
+function capitalize(s: string): string {
+  return s ? s[0].toUpperCase() + s.slice(1) : s
 }
 
 function schoolLine(name: string | undefined, gradYear: string | undefined): string {

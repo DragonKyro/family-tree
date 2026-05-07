@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import f3 from 'family-chart'
 import type { FamilyData, Person } from '../types'
-import { buildTreeData, SYNTHETIC_ROOT_ID } from '../lib/familyData'
+import { buildTreeData, resolvePhotoUrl, SYNTHETIC_ROOT_ID } from '../lib/familyData'
 
 export interface LayoutNode {
   id: string
@@ -36,6 +36,16 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: P
     el.innerHTML = ''
 
     const treeData = buildTreeData(data)
+    // family-chart renders <img src={d.data.avatar}> using the value as-is.
+    // On GH Pages the SPA is served from /family-tree/, so a stored path like
+    // /photos/x.png 404s without the base prefix. Rewrite each avatar to the
+    // resolved URL so cards match what the side panel renders via resolvePhotoUrl.
+    for (const person of treeData) {
+      const av = person.data.avatar
+      if (typeof av === 'string' && av.length > 0) {
+        person.data.avatar = resolvePhotoUrl(av) ?? av
+      }
+    }
 
     const chart = f3
       .createChart(el, treeData)
