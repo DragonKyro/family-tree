@@ -32,9 +32,10 @@ interface Props {
   onSelect: (person: Person) => void
   collapsed: boolean
   onToggleCollapse: () => void
+  onClose?: () => void
 }
 
-export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollapse }: Props) {
+export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollapse, onClose }: Props) {
   const [lightbox, setLightbox] = useState(false)
 
   // Close any open lightbox when the focused person changes.
@@ -60,10 +61,10 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
 
   if (!person) {
     return (
-      <aside className="side-panel">
+      <aside className="side-panel side-panel-empty">
         <button
           type="button"
-          className="panel-toggle"
+          className="panel-toggle desktop-only"
           onClick={onToggleCollapse}
           aria-label="Collapse info panel"
           title="Collapse info panel"
@@ -87,16 +88,27 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
   const subtitle = [dateRange(d), ageText, d.current_town].filter(Boolean).join(' · ')
 
   return (
-    <aside className="side-panel">
+    <aside className="side-panel side-panel-has-person">
       <button
         type="button"
-        className="panel-toggle"
+        className="panel-toggle desktop-only"
         onClick={onToggleCollapse}
         aria-label="Collapse info panel"
         title="Collapse info panel"
       >
         ›
       </button>
+      {onClose && (
+        <button
+          type="button"
+          className="panel-close mobile-only"
+          onClick={onClose}
+          aria-label="Close info panel"
+          title="Close"
+        >
+          ✕
+        </button>
+      )}
       <div className="side-panel-top">
         <div className="side-panel-avatar">
           {d.avatar ? (

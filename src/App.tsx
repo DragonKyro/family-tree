@@ -35,6 +35,7 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(readInitialTheme)
   const [tool, setTool] = useState<Tool>(null)
   const [panelCollapsed, setPanelCollapsed] = useState(false)
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false)
   const relPanelRef = useRef<RelationshipPanelHandle | null>(null)
 
   useEffect(() => {
@@ -49,6 +50,8 @@ export default function App() {
 
   const handleSelect = (person: Person) => {
     if (isSynthetic(person)) return
+    // Close the mobile menu whenever a person gets picked (e.g. via search).
+    setHeaderMenuOpen(false)
     // When the relationship panel is open, route tree clicks into it instead
     // of moving the side-panel selection.
     if (tool === 'relationship' && relPanelRef.current) {
@@ -79,40 +82,60 @@ export default function App() {
   }, [nextHoliday])
 
   return (
-    <div className={`app${panelCollapsed ? ' panel-collapsed' : ''}`}>
+    <div className={`app${panelCollapsed ? ' panel-collapsed' : ''}${headerMenuOpen ? ' header-menu-open' : ''}`}>
       <header className="app-header">
-        <h1 className="app-title">Lui + Shum Family Tree</h1>
-        <div className="legend">
-          <span className="legend-item"><span className="legend-swatch immediate" />Immediate</span>
-          <span className="legend-item"><span className="legend-swatch lui" />Lui side</span>
-          <span className="legend-item"><span className="legend-swatch shum" />Shum side</span>
-          <span className="legend-item"><span className="legend-swatch pet" />Pet</span>
-          <span className="legend-item"><span className="legend-swatch deceased" />Deceased</span>
-          <span className="legend-item"><span className="legend-swatch marriage" />Marriage</span>
-          <span className="legend-item"><span className="legend-swatch divorce" />Divorce</span>
-        </div>
-        <div className="spacer" />
-        {nextHoliday && nextHolidayLabel && (
-          <span
-            className="holiday-badge"
-            title={`${nextHoliday.holiday.name} — ${nextHolidayLabel === 'Today' ? 'today' : nextHolidayLabel}`}
-          >
-            <span aria-hidden>{nextHoliday.holiday.emoji}</span>
-            <span className="holiday-badge-name">{nextHoliday.holiday.name}</span>
-            <span className="holiday-badge-date">{nextHolidayLabel}</span>
-          </span>
-        )}
-        <SearchBox data={data} onSelect={handleSelect} />
         <button
           type="button"
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="header-menu-toggle mobile-only"
+          onClick={() => setHeaderMenuOpen((v) => !v)}
+          aria-label={headerMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={headerMenuOpen}
         >
-          {theme === 'dark' ? '☀' : '☾'}
+          {headerMenuOpen ? '✕' : '☰'}
         </button>
+        <h1 className="app-title">Lui + Shum Family Tree</h1>
+        <div className="header-controls">
+          <div className="legend">
+            <span className="legend-item"><span className="legend-swatch immediate" />Immediate</span>
+            <span className="legend-item"><span className="legend-swatch lui" />Lui side</span>
+            <span className="legend-item"><span className="legend-swatch shum" />Shum side</span>
+            <span className="legend-item"><span className="legend-swatch male" />Male</span>
+            <span className="legend-item"><span className="legend-swatch female" />Female</span>
+            <span className="legend-item"><span className="legend-swatch pet" />Pet</span>
+            <span className="legend-item"><span className="legend-swatch deceased" />Deceased</span>
+            <span className="legend-item"><span className="legend-swatch marriage" />Marriage</span>
+            <span className="legend-item"><span className="legend-swatch divorce" />Divorce</span>
+          </div>
+          <div className="spacer" />
+          {nextHoliday && nextHolidayLabel && (
+            <span
+              className="holiday-badge"
+              title={`${nextHoliday.holiday.name} — ${nextHolidayLabel === 'Today' ? 'today' : nextHolidayLabel}`}
+            >
+              <span aria-hidden>{nextHoliday.holiday.emoji}</span>
+              <span className="holiday-badge-name">{nextHoliday.holiday.name}</span>
+              <span className="holiday-badge-date">{nextHolidayLabel}</span>
+            </span>
+          )}
+          <SearchBox data={data} onSelect={handleSelect} />
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀' : '☾'}
+          </button>
+        </div>
       </header>
+      {headerMenuOpen && (
+        <div
+          className="header-menu-backdrop mobile-only"
+          onClick={() => setHeaderMenuOpen(false)}
+          aria-hidden
+        />
+      )}
       <main className="tree-area">
         <FamilyTree data={data} onSelect={handleSelect} focusId={focusId} onLayout={setLayoutNodes} />
         <MiniMap nodes={layoutNodes} />
@@ -174,6 +197,7 @@ export default function App() {
         onSelect={handleSelect}
         collapsed={panelCollapsed}
         onToggleCollapse={() => setPanelCollapsed((c) => !c)}
+        onClose={() => setSelectedId(null)}
       />
     </div>
   )

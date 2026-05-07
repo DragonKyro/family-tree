@@ -51,6 +51,10 @@
 
 * { box-sizing: border-box; }
 
+/* Mobile/desktop visibility helpers — flipped inside the responsive media query. */
+.mobile-only { display: none !important; }
+.desktop-only { display: revert; }
+
 html, body, #root {
   height: 100%;
   margin: 0;
@@ -413,6 +417,9 @@ button {
 .legend-swatch.shum { border: 2.5px solid var(--branch-shum); }
 /* Pet swatch: solid fill — pets keep their family border on the actual card. */
 .legend-swatch.pet { background: var(--branch-pet); }
+/* Gender swatches mirror family-chart's default card fills (.f3 .card-male/.card-female). */
+.legend-swatch.male { background: rgb(120, 159, 172); }
+.legend-swatch.female { background: rgb(196, 138, 146); }
 .legend-swatch.deceased {
   background: var(--muted);
   filter: grayscale(0.7) brightness(0.78);
@@ -1027,3 +1034,213 @@ button {
 /* Default (dark): cards stay light-colored for readability against dark bg.
    In dark mode the synthetic-root's inner-card background can leak through
    transparency edges; explicitly color them to avoid an odd "bright spot". */
+
+/* ---------- Header menu toggle (hamburger) — hidden on desktop ---------- */
+
+.header-menu-toggle {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.header-menu-toggle:hover { background: var(--bg); }
+
+.header-controls {
+  display: contents;
+}
+
+.panel-close {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 0;
+}
+.panel-close:hover { background: var(--bg); }
+
+/* ---------- Responsive: phone / portrait ---------- */
+
+@media (max-width: 700px) {
+  /* Visibility helper flip. */
+  .mobile-only { display: revert !important; }
+  .desktop-only { display: none !important; }
+
+  /* Single-column grid — the side panel becomes a bottom sheet outside the grid. */
+  .app,
+  .app.panel-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "tree";
+  }
+
+  /* Header: title shrinks, controls become a dropdown sheet. */
+  .app-header {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .app-title {
+    font-size: 15px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-controls {
+    display: none;
+    position: absolute;
+    top: 56px;
+    left: 8px;
+    right: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+    z-index: 210;
+  }
+  .app.header-menu-open .header-controls {
+    display: flex;
+  }
+  .header-controls .spacer { display: none; }
+  .header-controls .legend {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .header-controls .search-box {
+    width: 100%;
+  }
+  .header-controls .holiday-badge-name {
+    display: inline; /* show full name in the dropdown even though desktop hides it < 1100px */
+  }
+  .header-controls .holiday-badge-date {
+    border-left: 1px solid var(--border);
+    padding-left: 4px;
+  }
+  .header-controls .theme-toggle {
+    align-self: flex-start;
+  }
+
+  .header-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 200;
+  }
+
+  /* Side panel becomes a bottom sheet. Hidden when no person selected. */
+  .side-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    height: 72vh;
+    max-height: 72vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.32);
+    z-index: 90;
+    transform: translateY(100%);
+    transition: transform 0.22s ease;
+  }
+  .side-panel.side-panel-has-person {
+    transform: translateY(0);
+  }
+  /* Empty state and the "collapsed" desktop variant don't apply on mobile. */
+  .side-panel.side-panel-empty,
+  .side-panel.side-panel-collapsed {
+    display: none;
+  }
+
+  /* Visual handle bar at the top of the bottom sheet. */
+  .side-panel.side-panel-has-person::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-strong);
+    pointer-events: none;
+  }
+  .side-panel-top { padding-top: 26px; }
+
+  /* Tool panels: full-width bottom sheets, above the details sheet. */
+  .tool-panel {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-width: none;
+    height: 70vh;
+    max-height: 70vh;
+    border-radius: 14px;
+    z-index: 110;
+  }
+  .tool-panel.map-panel {
+    width: auto;
+    height: 70vh;
+  }
+
+  /* Tool buttons: slightly tighter, still top-left. */
+  .tool-buttons {
+    top: 10px;
+    left: 10px;
+    gap: 6px;
+  }
+  .tool-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+  }
+
+  /* MiniMap: shrink so it doesn't dominate. */
+  .minimap {
+    left: 10px;
+    bottom: 10px;
+    width: 120px;
+    height: 84px;
+  }
+
+  /* Calendar / relationship panel internals — slightly tighter. */
+  .calendar-people { max-height: 28vh; }
+  .rel-row {
+    grid-template-columns: 1fr;
+  }
+  .rel-arrow {
+    text-align: center;
+    padding-bottom: 0;
+    transform: rotate(90deg);
+  }
+}
