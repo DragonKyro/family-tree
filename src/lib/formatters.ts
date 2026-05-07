@@ -27,3 +27,14 @@ export function mailtoHref(raw: string | undefined): string | undefined {
   if (!raw) return undefined
   return `mailto:${raw}`
 }
+
+// Comma-separated list → capitalize first letter of each element, normalize spacing.
+export function formatInterests(raw: string | undefined): string {
+  if (!raw) return ''
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => s[0].toUpperCase() + s.slice(1))
+    .join(', ')
+}

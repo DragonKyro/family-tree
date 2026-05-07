@@ -59,6 +59,8 @@ export default function App() {
       return
     }
     setSelectedId(person.id)
+    // Auto-expand the info panel so the user actually sees what they clicked.
+    setPanelCollapsed(false)
   }
 
   const selected = selectedId ? findById(data, selectedId) ?? null : null
