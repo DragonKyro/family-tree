@@ -1,5 +1,21 @@
 export type Gender = 'M' | 'F'
 
+export type SocialPlatform =
+  | 'instagram'
+  | 'facebook'
+  | 'linkedin'
+  | 'twitter'
+  | 'tiktok'
+  | 'youtube'
+  | 'snapchat'
+  | 'github'
+  | 'discord'
+  | 'threads'
+  | 'bluesky'
+  | 'wechat'
+
+export type SocialHandles = Partial<Record<SocialPlatform, string>>
+
 export interface PersonData {
   first_name: string
   last_name: string
@@ -19,10 +35,15 @@ export interface PersonData {
   high_school_grad_year?: string
   college?: string
   college_grad_year?: string
+  college_degree?: string
+  grad_school?: string
+  grad_school_grad_year?: string
+  grad_school_degree?: string
   current_town?: string
   current_job?: string
   current_role?: string
   interests?: string
+  social?: SocialHandles
 
   [key: string]: unknown
 }

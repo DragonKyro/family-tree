@@ -676,7 +676,19 @@
       "last_name": "Lui",
       "gender": "M",
       "branch": "immediate",
-      "birthday": "2001-01-13"
+      "birthday": "2001-01-13",
+      "avatar": "/photos/kyle-lui.jpg",
+      "phone": "732-642-9224",
+      "email": "kyle31412@gmail.com",
+      "high_school": "High Technology High School",
+      "high_school_grad_year": "2019",
+      "college": "University of California, Berkeley",
+      "college_grad_year": "2023",
+      "college_degree": "B.S. EECS, B.A. Applied Math, B.A. Statistics",
+      "current_town": "Jersey City, NJ",
+      "current_job": "DRW",
+      "current_role": "Associate Portfolio Manager",
+      "interests": "swimming, volleyball, frisbee, wing chun, bridge, blackjack, board games, cocktail making"
     },
     "rels": {
       "father": "alex-lui",

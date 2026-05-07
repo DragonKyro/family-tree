@@ -90,9 +90,18 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: P
           return
         }
         const branches = ['branch-immediate', 'branch-lui', 'branch-shum', 'branch-placeholder']
-        cardEl.classList.remove(...branches)
-        const branch = (d?.data?.data as Record<string, unknown>)?.branch as string | undefined
+        cardEl.classList.remove(...branches, 'is-pet', 'is-deceased')
+        const dataObj = d?.data?.data as Record<string, unknown> | undefined
+        const branch = dataObj?.branch as string | undefined
+        const isPet = Boolean(dataObj?.is_pet)
+        const isDeceased =
+          Boolean(dataObj?.deceased) ||
+          (typeof dataObj?.deathday === 'string' && (dataObj.deathday as string).length > 0)
+        // Branch class always applies (gives the family-side border).
         if (branch) cardEl.classList.add(`branch-${branch}`)
+        // Pet adds a solid-fill interior on top of the branch border.
+        if (isPet) cardEl.classList.add('is-pet')
+        if (isDeceased) cardEl.classList.add('is-deceased')
       })
 
     card.setOnCardClick((_e: MouseEvent, d: { data: Person }) => {
@@ -356,13 +365,12 @@ function centerOnPerson(chart: any, el: HTMLElement, id: string, transitionTime 
 }
 
 function dateLine(data: Person['data']): string {
+  // Card shading conveys deceased status — no dagger here. The full date range
+  // (when available) still displays for both living and deceased.
   const b = data.birthday || ''
   const d = data.deathday || ''
-  const dag = data.deceased ? '†' : ''
   if (b && d) return `${b} – ${d}`
-  if (b && dag) return `${b} ${dag}`
   if (b) return b
-  if (d) return `† ${d}`
-  if (dag) return '†'
+  if (d) return d
   return ''
 }

@@ -1,7 +1,30 @@
-import type { FamilyData, Person } from '../types'
+import { useEffect, useState } from 'react'
+import type { FamilyData, Person, SocialPlatform } from '../types'
 import { findById, fullName, resolvePhotoUrl } from '../lib/familyData'
 import { formatDisplayDate, mailtoHref, telHref } from '../lib/formatters'
 import { getAgeText, getAstrology } from '../lib/astrology'
+import { LightboxImage } from './LightboxImage'
+
+interface SocialMeta {
+  label: string
+  emoji: string
+  urlFor?: (handle: string) => string
+}
+
+const SOCIAL_PLATFORMS: Array<{ key: SocialPlatform } & SocialMeta> = [
+  { key: 'instagram', label: 'Instagram', emoji: '📷', urlFor: (h) => `https://instagram.com/${h}` },
+  { key: 'facebook',  label: 'Facebook',  emoji: '👤', urlFor: (h) => `https://facebook.com/${h}` },
+  { key: 'linkedin',  label: 'LinkedIn',  emoji: '💼', urlFor: (h) => `https://linkedin.com/in/${h}` },
+  { key: 'twitter',   label: 'X',         emoji: '𝕏',  urlFor: (h) => `https://x.com/${h}` },
+  { key: 'threads',   label: 'Threads',   emoji: '🧵', urlFor: (h) => `https://threads.net/@${h}` },
+  { key: 'bluesky',   label: 'Bluesky',   emoji: '🦋', urlFor: (h) => `https://bsky.app/profile/${h}` },
+  { key: 'tiktok',    label: 'TikTok',    emoji: '🎵', urlFor: (h) => `https://tiktok.com/@${h}` },
+  { key: 'youtube',   label: 'YouTube',   emoji: '▶️', urlFor: (h) => `https://youtube.com/@${h}` },
+  { key: 'snapchat',  label: 'Snapchat',  emoji: '👻', urlFor: (h) => `https://snapchat.com/add/${h}` },
+  { key: 'github',    label: 'GitHub',    emoji: '💻', urlFor: (h) => `https://github.com/${h}` },
+  { key: 'discord',   label: 'Discord',   emoji: '🎮' },
+  { key: 'wechat',    label: 'WeChat',    emoji: '💬' },
+]
 
 interface Props {
   person: Person | null
@@ -10,6 +33,13 @@ interface Props {
 }
 
 export function DetailsPanel({ person, data, onSelect }: Props) {
+  const [lightbox, setLightbox] = useState(false)
+
+  // Close any open lightbox when the focused person changes.
+  useEffect(() => {
+    setLightbox(false)
+  }, [person?.id])
+
   if (!person) {
     return (
       <aside className="side-panel">
@@ -34,7 +64,14 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
       <div className="side-panel-top">
         <div className="side-panel-avatar">
           {d.avatar ? (
-            <img className="avatar" src={resolvePhotoUrl(d.avatar)} alt={fullName(person)} />
+            <button
+              type="button"
+              className="avatar-button"
+              onClick={() => setLightbox(true)}
+              aria-label={`Enlarge photo of ${fullName(person)}`}
+            >
+              <img className="avatar" src={resolvePhotoUrl(d.avatar)} alt={fullName(person)} />
+            </button>
           ) : (
             <div className="avatar avatar-placeholder" aria-hidden>
               {initials(person)}
@@ -66,7 +103,7 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
         </Section>
       )}
 
-      {hasAny(d, ['phone', 'email']) && (
+      {(hasAny(d, ['phone', 'email']) || hasSocial(d.social)) && (
         <Section title="Contact">
           {d.phone && (
             <Row label="Phone">
@@ -78,10 +115,28 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
               <a href={mailtoHref(d.email)}>{d.email}</a>
             </Row>
           )}
+          {SOCIAL_PLATFORMS.map((p) => {
+            const raw = d.social?.[p.key]
+            if (!raw) return null
+            return (
+              <Row key={p.key} label={<><span aria-hidden>{p.emoji}</span> {p.label}</>}>
+                {renderSocialValue(raw, p.urlFor)}
+              </Row>
+            )
+          })}
         </Section>
       )}
 
-      {hasAny(d, ['high_school', 'college', 'high_school_grad_year', 'college_grad_year']) && (
+      {hasAny(d, [
+        'high_school',
+        'high_school_grad_year',
+        'college',
+        'college_grad_year',
+        'college_degree',
+        'grad_school',
+        'grad_school_grad_year',
+        'grad_school_degree',
+      ]) && (
         <Section title="Education">
           {(d.high_school || d.high_school_grad_year) && (
             <Row label="High school">{schoolLine(d.high_school, d.high_school_grad_year)}</Row>
@@ -89,6 +144,11 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
           {(d.college || d.college_grad_year) && (
             <Row label="College">{schoolLine(d.college, d.college_grad_year)}</Row>
           )}
+          {d.college_degree && <Row label="Degree">{d.college_degree}</Row>}
+          {(d.grad_school || d.grad_school_grad_year) && (
+            <Row label="Grad school">{schoolLine(d.grad_school, d.grad_school_grad_year)}</Row>
+          )}
+          {d.grad_school_degree && <Row label="Grad degree">{d.grad_school_degree}</Row>}
         </Section>
       )}
 
@@ -139,6 +199,14 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
         <Section title="Notes">
           <div className="long-text">{d.notes}</div>
         </Section>
+      )}
+
+      {lightbox && d.avatar && (
+        <LightboxImage
+          src={resolvePhotoUrl(d.avatar) ?? d.avatar}
+          alt={fullName(person)}
+          onClose={() => setLightbox(false)}
+        />
       )}
     </aside>
   )
@@ -191,6 +259,21 @@ function hasAny(d: Person['data'], keys: Array<keyof Person['data']>): boolean {
   })
 }
 
+function hasSocial(social: Person['data']['social']): boolean {
+  if (!social) return false
+  return Object.values(social).some((v) => typeof v === 'string' && v.length > 0)
+}
+
+function renderSocialValue(raw: string, urlFor?: (handle: string) => string) {
+  const v = raw.trim()
+  if (/^https?:\/\//i.test(v)) {
+    return <a href={v} target="_blank" rel="noopener noreferrer">{v.replace(/^https?:\/\/(www\.)?/i, '')}</a>
+  }
+  const handle = v.replace(/^@/, '')
+  if (!urlFor) return <span>{handle}</span>
+  return <a href={urlFor(handle)} target="_blank" rel="noopener noreferrer">@{handle}</a>
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="panel-section">
@@ -200,7 +283,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="panel-row">
       <div className="panel-row-label">{label}</div>
