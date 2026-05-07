@@ -26,10 +26,3 @@ pnpm-debug.log*
 
 coverage
 .nyc_output
-
-# Temp file from atomic family.json writes
-data/*.tmp
-
-# Cloudflare Worker local-dev secrets
-worker/.dev.vars
-worker/.wrangler

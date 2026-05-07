@@ -6,10 +6,9 @@ interface Props {
   person: Person | null
   data: FamilyData
   onSelect: (person: Person) => void
-  onEdit: (person: Person) => void
 }
 
-export function DetailsPanel({ person, data, onSelect, onEdit }: Props) {
+export function DetailsPanel({ person, data, onSelect }: Props) {
   if (!person) {
     return (
       <aside className="side-panel">
@@ -43,9 +42,6 @@ export function DetailsPanel({ person, data, onSelect, onEdit }: Props) {
           <h2>{fullName(person)}</h2>
           {subtitle && <div className="muted">{subtitle}</div>}
         </div>
-        <button type="button" className="edit-btn" onClick={() => onEdit(person)}>
-          Edit
-        </button>
       </div>
 
       {hasAny(d, ['phone', 'email']) && (

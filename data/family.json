@@ -1,681 +1,678 @@
-{
-  "data": [
-    {
-      "id": "gf-lui",
-      "data": {
-        "first_name": "William",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "lui",
-        "deceased": true
-      },
-      "rels": {
-        "spouses": [
-          "gm-lui"
-        ],
-        "children": [
-          "james-lui",
-          "alex-lui"
-        ]
-      }
+[
+  {
+    "id": "gf-lui",
+    "data": {
+      "first_name": "William",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "lui",
+      "deceased": true
     },
-    {
-      "id": "gm-lui",
-      "data": {
-        "first_name": "Helen",
-        "last_name": "Lui",
-        "gender": "F",
-        "branch": "lui"
-      },
-      "rels": {
-        "spouses": [
-          "gf-lui"
-        ],
-        "children": [
-          "james-lui",
-          "alex-lui"
-        ]
-      }
-    },
-    {
-      "id": "gf-shum",
-      "data": {
-        "first_name": "Gong Gong",
-        "last_name": "",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "gm-shum"
-        ],
-        "children": [
-          "janet-shum",
-          "lisa-luh",
-          "mary-tam",
-          "peter-shum",
-          "teresa-leung",
-          "amy-shum",
-          "ana-yee"
-        ]
-      }
-    },
-    {
-      "id": "gm-shum",
-      "data": {
-        "first_name": "Po Po",
-        "last_name": "",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "gf-shum"
-        ],
-        "children": [
-          "janet-shum",
-          "lisa-luh",
-          "mary-tam",
-          "peter-shum",
-          "teresa-leung",
-          "amy-shum",
-          "ana-yee"
-        ]
-      }
-    },
-    {
-      "id": "alex-lui",
-      "data": {
-        "first_name": "Alex",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "immediate"
-      },
-      "rels": {
-        "father": "gf-lui",
-        "mother": "gm-lui",
-        "spouses": [
-          "janet-shum"
-        ],
-        "children": [
-          "kyle-lui",
-          "kara-lui",
-          "kevin-lui"
-        ]
-      }
-    },
-    {
-      "id": "janet-shum",
-      "data": {
-        "first_name": "Janet",
-        "last_name": "Shum",
-        "gender": "F",
-        "branch": "immediate"
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "alex-lui"
-        ],
-        "children": [
-          "kyle-lui",
-          "kara-lui",
-          "kevin-lui"
-        ]
-      }
-    },
-    {
-      "id": "james-lui",
-      "data": {
-        "first_name": "James",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "lui"
-      },
-      "rels": {
-        "father": "gf-lui",
-        "mother": "gm-lui",
-        "spouses": [
-          "alison-so"
-        ],
-        "children": [
-          "wesley-lui",
-          "mitchell-lui"
-        ]
-      }
-    },
-    {
-      "id": "alison-so",
-      "data": {
-        "first_name": "Alison",
-        "last_name": "So",
-        "gender": "F",
-        "branch": "lui"
-      },
-      "rels": {
-        "spouses": [
-          "james-lui"
-        ],
-        "children": [
-          "wesley-lui",
-          "mitchell-lui"
-        ]
-      }
-    },
-    {
-      "id": "mitchell-lui",
-      "data": {
-        "first_name": "Mitchell",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "lui"
-      },
-      "rels": {
-        "father": "james-lui",
-        "mother": "alison-so"
-      }
-    },
-    {
-      "id": "wesley-lui",
-      "data": {
-        "first_name": "Wesley",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "lui"
-      },
-      "rels": {
-        "father": "james-lui",
-        "mother": "alison-so"
-      }
-    },
-    {
-      "id": "lisa-luh",
-      "data": {
-        "first_name": "Lisa",
-        "last_name": "Luh",
-        "gender": "F",
-        "branch": "shum",
-        "notes": "Née Shum."
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "bing-luh"
-        ],
-        "children": [
-          "justin-luh",
-          "ashley-luh",
-          "preston-luh"
-        ]
-      }
-    },
-    {
-      "id": "bing-luh",
-      "data": {
-        "first_name": "Bing",
-        "last_name": "Luh",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "lisa-luh"
-        ],
-        "children": [
-          "justin-luh",
-          "ashley-luh",
-          "preston-luh"
-        ]
-      }
-    },
-    {
-      "id": "justin-luh",
-      "data": {
-        "first_name": "Justin",
-        "last_name": "Luh",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "bing-luh",
-        "mother": "lisa-luh",
-        "spouses": [
-          "amanda-luh"
-        ]
-      }
-    },
-    {
-      "id": "amanda-luh",
-      "data": {
-        "first_name": "Amanda",
-        "last_name": "Luh",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "justin-luh"
-        ]
-      }
-    },
-    {
-      "id": "ashley-luh",
-      "data": {
-        "first_name": "Ashley",
-        "last_name": "Luh",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "bing-luh",
-        "mother": "lisa-luh"
-      }
-    },
-    {
-      "id": "preston-luh",
-      "data": {
-        "first_name": "Preston",
-        "last_name": "Luh",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "bing-luh",
-        "mother": "lisa-luh"
-      }
-    },
-    {
-      "id": "mary-tam",
-      "data": {
-        "first_name": "Mary",
-        "last_name": "Tam",
-        "gender": "F",
-        "branch": "shum",
-        "notes": "Née Shum."
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "kach-tam"
-        ],
-        "children": [
-          "hailey-tam",
-          "leia-tam",
-          "keira-tam"
-        ]
-      }
-    },
-    {
-      "id": "kach-tam",
-      "data": {
-        "first_name": "Kach",
-        "last_name": "Tam",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "mary-tam"
-        ],
-        "children": [
-          "hailey-tam",
-          "leia-tam",
-          "keira-tam"
-        ]
-      }
-    },
-    {
-      "id": "hailey-tam",
-      "data": {
-        "first_name": "Hailey",
-        "last_name": "Tam",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "kach-tam",
-        "mother": "mary-tam"
-      }
-    },
-    {
-      "id": "leia-tam",
-      "data": {
-        "first_name": "Leia",
-        "last_name": "Tam",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "kach-tam",
-        "mother": "mary-tam"
-      }
-    },
-    {
-      "id": "keira-tam",
-      "data": {
-        "first_name": "Keira",
-        "last_name": "Tam",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "kach-tam",
-        "mother": "mary-tam"
-      }
-    },
-    {
-      "id": "peter-shum",
-      "data": {
-        "first_name": "Peter",
-        "last_name": "Shum",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "amy-shum-peters-wife"
-        ],
-        "children": [
-          "monet-shum"
-        ]
-      }
-    },
-    {
-      "id": "amy-shum-peters-wife",
-      "data": {
-        "first_name": "Amy",
-        "last_name": "Shum",
-        "gender": "F",
-        "branch": "shum",
-        "notes": "Peter's wife (distinct from Janet's sister Amy Shum)."
-      },
-      "rels": {
-        "spouses": [
-          "peter-shum"
-        ],
-        "children": [
-          "monet-shum"
-        ]
-      }
-    },
-    {
-      "id": "monet-shum",
-      "data": {
-        "first_name": "Monet",
-        "last_name": "Shum",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "peter-shum",
-        "mother": "amy-shum-peters-wife"
-      }
-    },
-    {
-      "id": "amy-shum",
-      "data": {
-        "first_name": "Amy",
-        "last_name": "Shum",
-        "gender": "F",
-        "branch": "shum",
-        "divorced": true,
-        "notes": "Janet's sister. Divorced from Stewart Yee."
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "stewart-yee"
-        ],
-        "children": [
-          "jaden-yee",
-          "steele-yee"
-        ]
-      }
-    },
-    {
-      "id": "stewart-yee",
-      "data": {
-        "first_name": "Stewart",
-        "last_name": "Yee",
-        "gender": "M",
-        "branch": "shum",
-        "divorced": true,
-        "notes": "Divorced from Amy Shum."
-      },
-      "rels": {
-        "spouses": [
-          "amy-shum"
-        ],
-        "children": [
-          "jaden-yee",
-          "steele-yee"
-        ]
-      }
-    },
-    {
-      "id": "jaden-yee",
-      "data": {
-        "first_name": "Jaden",
-        "last_name": "Yee",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "stewart-yee",
-        "mother": "amy-shum"
-      }
-    },
-    {
-      "id": "steele-yee",
-      "data": {
-        "first_name": "Steele",
-        "last_name": "Yee",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "stewart-yee",
-        "mother": "amy-shum"
-      }
-    },
-    {
-      "id": "teresa-leung",
-      "data": {
-        "first_name": "Teresa",
-        "last_name": "Leung",
-        "gender": "F",
-        "branch": "shum",
-        "notes": "Née Shum."
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "william-leung"
-        ],
-        "children": [
-          "elli-leung",
-          "lance-leung"
-        ]
-      }
-    },
-    {
-      "id": "william-leung",
-      "data": {
-        "first_name": "William",
-        "last_name": "Leung",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "teresa-leung"
-        ],
-        "children": [
-          "elli-leung",
-          "lance-leung"
-        ]
-      }
-    },
-    {
-      "id": "elli-leung",
-      "data": {
-        "first_name": "Elli",
-        "last_name": "Leung",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "william-leung",
-        "mother": "teresa-leung"
-      }
-    },
-    {
-      "id": "lance-leung",
-      "data": {
-        "first_name": "Lance",
-        "last_name": "Leung",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "william-leung",
-        "mother": "teresa-leung"
-      }
-    },
-    {
-      "id": "ana-yee",
-      "data": {
-        "first_name": "Ana",
-        "last_name": "Yee",
-        "gender": "F",
-        "branch": "shum",
-        "notes": "Née Shum."
-      },
-      "rels": {
-        "father": "gf-shum",
-        "mother": "gm-shum",
-        "spouses": [
-          "jimmy-yee"
-        ],
-        "children": [
-          "anderson-yee",
-          "kaitlyn-yee",
-          "carter-yee"
-        ]
-      }
-    },
-    {
-      "id": "jimmy-yee",
-      "data": {
-        "first_name": "Jimmy",
-        "last_name": "Yee",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "spouses": [
-          "ana-yee"
-        ],
-        "children": [
-          "anderson-yee",
-          "kaitlyn-yee",
-          "carter-yee"
-        ]
-      }
-    },
-    {
-      "id": "anderson-yee",
-      "data": {
-        "first_name": "Anderson",
-        "last_name": "Yee",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "jimmy-yee",
-        "mother": "ana-yee"
-      }
-    },
-    {
-      "id": "kaitlyn-yee",
-      "data": {
-        "first_name": "Kaitlyn",
-        "last_name": "Yee",
-        "gender": "F",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "jimmy-yee",
-        "mother": "ana-yee"
-      }
-    },
-    {
-      "id": "carter-yee",
-      "data": {
-        "first_name": "Carter",
-        "last_name": "Yee",
-        "gender": "M",
-        "branch": "shum"
-      },
-      "rels": {
-        "father": "jimmy-yee",
-        "mother": "ana-yee"
-      }
-    },
-    {
-      "id": "kyle-lui",
-      "main": true,
-      "data": {
-        "first_name": "Kyle",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "immediate",
-        "phone": "",
-        "email": "",
-        "current_town": "",
-        "interests": "",
-        "avatar": "",
-        "high_school_grad_year": "",
-        "college_grad_year": ""
-      },
-      "rels": {
-        "father": "alex-lui",
-        "mother": "janet-shum"
-      }
-    },
-    {
-      "id": "kara-lui",
-      "data": {
-        "first_name": "Kara",
-        "last_name": "Lui",
-        "gender": "F",
-        "branch": "immediate"
-      },
-      "rels": {
-        "father": "alex-lui",
-        "mother": "janet-shum"
-      }
-    },
-    {
-      "id": "kevin-lui",
-      "data": {
-        "first_name": "Kevin",
-        "last_name": "Lui",
-        "gender": "M",
-        "branch": "immediate"
-      },
-      "rels": {
-        "father": "alex-lui",
-        "mother": "janet-shum"
-      }
+    "rels": {
+      "spouses": [
+        "gm-lui"
+      ],
+      "children": [
+        "james-lui",
+        "alex-lui"
+      ]
     }
-  ],
-  "version": 5
-}
+  },
+  {
+    "id": "gm-lui",
+    "data": {
+      "first_name": "Helen",
+      "last_name": "Lui",
+      "gender": "F",
+      "branch": "lui"
+    },
+    "rels": {
+      "spouses": [
+        "gf-lui"
+      ],
+      "children": [
+        "james-lui",
+        "alex-lui"
+      ]
+    }
+  },
+  {
+    "id": "gf-shum",
+    "data": {
+      "first_name": "Gong Gong",
+      "last_name": "",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "gm-shum"
+      ],
+      "children": [
+        "janet-shum",
+        "lisa-luh",
+        "mary-tam",
+        "peter-shum",
+        "teresa-leung",
+        "amy-shum",
+        "ana-yee"
+      ]
+    }
+  },
+  {
+    "id": "gm-shum",
+    "data": {
+      "first_name": "Po Po",
+      "last_name": "",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "gf-shum"
+      ],
+      "children": [
+        "janet-shum",
+        "lisa-luh",
+        "mary-tam",
+        "peter-shum",
+        "teresa-leung",
+        "amy-shum",
+        "ana-yee"
+      ]
+    }
+  },
+  {
+    "id": "alex-lui",
+    "data": {
+      "first_name": "Alex",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "immediate"
+    },
+    "rels": {
+      "father": "gf-lui",
+      "mother": "gm-lui",
+      "spouses": [
+        "janet-shum"
+      ],
+      "children": [
+        "kyle-lui",
+        "kara-lui",
+        "kevin-lui"
+      ]
+    }
+  },
+  {
+    "id": "janet-shum",
+    "data": {
+      "first_name": "Janet",
+      "last_name": "Shum",
+      "gender": "F",
+      "branch": "immediate"
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "alex-lui"
+      ],
+      "children": [
+        "kyle-lui",
+        "kara-lui",
+        "kevin-lui"
+      ]
+    }
+  },
+  {
+    "id": "james-lui",
+    "data": {
+      "first_name": "James",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "lui"
+    },
+    "rels": {
+      "father": "gf-lui",
+      "mother": "gm-lui",
+      "spouses": [
+        "alison-so"
+      ],
+      "children": [
+        "wesley-lui",
+        "mitchell-lui"
+      ]
+    }
+  },
+  {
+    "id": "alison-so",
+    "data": {
+      "first_name": "Alison",
+      "last_name": "So",
+      "gender": "F",
+      "branch": "lui"
+    },
+    "rels": {
+      "spouses": [
+        "james-lui"
+      ],
+      "children": [
+        "wesley-lui",
+        "mitchell-lui"
+      ]
+    }
+  },
+  {
+    "id": "mitchell-lui",
+    "data": {
+      "first_name": "Mitchell",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "lui"
+    },
+    "rels": {
+      "father": "james-lui",
+      "mother": "alison-so"
+    }
+  },
+  {
+    "id": "wesley-lui",
+    "data": {
+      "first_name": "Wesley",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "lui"
+    },
+    "rels": {
+      "father": "james-lui",
+      "mother": "alison-so"
+    }
+  },
+  {
+    "id": "lisa-luh",
+    "data": {
+      "first_name": "Lisa",
+      "last_name": "Luh",
+      "gender": "F",
+      "branch": "shum",
+      "notes": "Née Shum."
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "bing-luh"
+      ],
+      "children": [
+        "justin-luh",
+        "ashley-luh",
+        "preston-luh"
+      ]
+    }
+  },
+  {
+    "id": "bing-luh",
+    "data": {
+      "first_name": "Bing",
+      "last_name": "Luh",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "lisa-luh"
+      ],
+      "children": [
+        "justin-luh",
+        "ashley-luh",
+        "preston-luh"
+      ]
+    }
+  },
+  {
+    "id": "justin-luh",
+    "data": {
+      "first_name": "Justin",
+      "last_name": "Luh",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "bing-luh",
+      "mother": "lisa-luh",
+      "spouses": [
+        "amanda-luh"
+      ]
+    }
+  },
+  {
+    "id": "amanda-luh",
+    "data": {
+      "first_name": "Amanda",
+      "last_name": "Luh",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "justin-luh"
+      ]
+    }
+  },
+  {
+    "id": "ashley-luh",
+    "data": {
+      "first_name": "Ashley",
+      "last_name": "Luh",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "bing-luh",
+      "mother": "lisa-luh"
+    }
+  },
+  {
+    "id": "preston-luh",
+    "data": {
+      "first_name": "Preston",
+      "last_name": "Luh",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "bing-luh",
+      "mother": "lisa-luh"
+    }
+  },
+  {
+    "id": "mary-tam",
+    "data": {
+      "first_name": "Mary",
+      "last_name": "Tam",
+      "gender": "F",
+      "branch": "shum",
+      "notes": "Née Shum."
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "kach-tam"
+      ],
+      "children": [
+        "hailey-tam",
+        "leia-tam",
+        "keira-tam"
+      ]
+    }
+  },
+  {
+    "id": "kach-tam",
+    "data": {
+      "first_name": "Kach",
+      "last_name": "Tam",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "mary-tam"
+      ],
+      "children": [
+        "hailey-tam",
+        "leia-tam",
+        "keira-tam"
+      ]
+    }
+  },
+  {
+    "id": "hailey-tam",
+    "data": {
+      "first_name": "Hailey",
+      "last_name": "Tam",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "kach-tam",
+      "mother": "mary-tam"
+    }
+  },
+  {
+    "id": "leia-tam",
+    "data": {
+      "first_name": "Leia",
+      "last_name": "Tam",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "kach-tam",
+      "mother": "mary-tam"
+    }
+  },
+  {
+    "id": "keira-tam",
+    "data": {
+      "first_name": "Keira",
+      "last_name": "Tam",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "kach-tam",
+      "mother": "mary-tam"
+    }
+  },
+  {
+    "id": "peter-shum",
+    "data": {
+      "first_name": "Peter",
+      "last_name": "Shum",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "amy-shum-peters-wife"
+      ],
+      "children": [
+        "monet-shum"
+      ]
+    }
+  },
+  {
+    "id": "amy-shum-peters-wife",
+    "data": {
+      "first_name": "Amy",
+      "last_name": "Shum",
+      "gender": "F",
+      "branch": "shum",
+      "notes": "Peter's wife (distinct from Janet's sister Amy Shum)."
+    },
+    "rels": {
+      "spouses": [
+        "peter-shum"
+      ],
+      "children": [
+        "monet-shum"
+      ]
+    }
+  },
+  {
+    "id": "monet-shum",
+    "data": {
+      "first_name": "Monet",
+      "last_name": "Shum",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "peter-shum",
+      "mother": "amy-shum-peters-wife"
+    }
+  },
+  {
+    "id": "amy-shum",
+    "data": {
+      "first_name": "Amy",
+      "last_name": "Shum",
+      "gender": "F",
+      "branch": "shum",
+      "divorced": true,
+      "notes": "Janet's sister. Divorced from Stewart Yee."
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "stewart-yee"
+      ],
+      "children": [
+        "jaden-yee",
+        "steele-yee"
+      ]
+    }
+  },
+  {
+    "id": "stewart-yee",
+    "data": {
+      "first_name": "Stewart",
+      "last_name": "Yee",
+      "gender": "M",
+      "branch": "shum",
+      "divorced": true,
+      "notes": "Divorced from Amy Shum."
+    },
+    "rels": {
+      "spouses": [
+        "amy-shum"
+      ],
+      "children": [
+        "jaden-yee",
+        "steele-yee"
+      ]
+    }
+  },
+  {
+    "id": "jaden-yee",
+    "data": {
+      "first_name": "Jaden",
+      "last_name": "Yee",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "stewart-yee",
+      "mother": "amy-shum"
+    }
+  },
+  {
+    "id": "steele-yee",
+    "data": {
+      "first_name": "Steele",
+      "last_name": "Yee",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "stewart-yee",
+      "mother": "amy-shum"
+    }
+  },
+  {
+    "id": "teresa-leung",
+    "data": {
+      "first_name": "Teresa",
+      "last_name": "Leung",
+      "gender": "F",
+      "branch": "shum",
+      "notes": "Née Shum."
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "william-leung"
+      ],
+      "children": [
+        "elli-leung",
+        "lance-leung"
+      ]
+    }
+  },
+  {
+    "id": "william-leung",
+    "data": {
+      "first_name": "William",
+      "last_name": "Leung",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "teresa-leung"
+      ],
+      "children": [
+        "elli-leung",
+        "lance-leung"
+      ]
+    }
+  },
+  {
+    "id": "elli-leung",
+    "data": {
+      "first_name": "Elli",
+      "last_name": "Leung",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "william-leung",
+      "mother": "teresa-leung"
+    }
+  },
+  {
+    "id": "lance-leung",
+    "data": {
+      "first_name": "Lance",
+      "last_name": "Leung",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "william-leung",
+      "mother": "teresa-leung"
+    }
+  },
+  {
+    "id": "ana-yee",
+    "data": {
+      "first_name": "Ana",
+      "last_name": "Yee",
+      "gender": "F",
+      "branch": "shum",
+      "notes": "Née Shum."
+    },
+    "rels": {
+      "father": "gf-shum",
+      "mother": "gm-shum",
+      "spouses": [
+        "jimmy-yee"
+      ],
+      "children": [
+        "anderson-yee",
+        "kaitlyn-yee",
+        "carter-yee"
+      ]
+    }
+  },
+  {
+    "id": "jimmy-yee",
+    "data": {
+      "first_name": "Jimmy",
+      "last_name": "Yee",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "spouses": [
+        "ana-yee"
+      ],
+      "children": [
+        "anderson-yee",
+        "kaitlyn-yee",
+        "carter-yee"
+      ]
+    }
+  },
+  {
+    "id": "anderson-yee",
+    "data": {
+      "first_name": "Anderson",
+      "last_name": "Yee",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "jimmy-yee",
+      "mother": "ana-yee"
+    }
+  },
+  {
+    "id": "kaitlyn-yee",
+    "data": {
+      "first_name": "Kaitlyn",
+      "last_name": "Yee",
+      "gender": "F",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "jimmy-yee",
+      "mother": "ana-yee"
+    }
+  },
+  {
+    "id": "carter-yee",
+    "data": {
+      "first_name": "Carter",
+      "last_name": "Yee",
+      "gender": "M",
+      "branch": "shum"
+    },
+    "rels": {
+      "father": "jimmy-yee",
+      "mother": "ana-yee"
+    }
+  },
+  {
+    "id": "kyle-lui",
+    "main": true,
+    "data": {
+      "first_name": "Kyle",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "immediate",
+      "phone": "",
+      "email": "",
+      "current_town": "",
+      "interests": "",
+      "avatar": "",
+      "high_school_grad_year": "",
+      "college_grad_year": ""
+    },
+    "rels": {
+      "father": "alex-lui",
+      "mother": "janet-shum"
+    }
+  },
+  {
+    "id": "kara-lui",
+    "data": {
+      "first_name": "Kara",
+      "last_name": "Lui",
+      "gender": "F",
+      "branch": "immediate"
+    },
+    "rels": {
+      "father": "alex-lui",
+      "mother": "janet-shum"
+    }
+  },
+  {
+    "id": "kevin-lui",
+    "data": {
+      "first_name": "Kevin",
+      "last_name": "Lui",
+      "gender": "M",
+      "branch": "immediate"
+    },
+    "rels": {
+      "father": "alex-lui",
+      "mother": "janet-shum"
+    }
+  }
+]

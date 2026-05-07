@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "The Lui + Shum family tree — interactive web app",
+  "description": "The Lui + Shum family tree — interactive read-only web app",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,9 +17,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260504.1",
     "@types/d3": "^7.4.3",
-    "@types/node": "^25.6.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",

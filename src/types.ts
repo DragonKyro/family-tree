@@ -12,7 +12,6 @@ export interface PersonData {
   notes?: string
   branch?: 'immediate' | 'lui' | 'shum' | 'placeholder'
 
-  // Contact + profile
   phone?: string
   email?: string
   high_school?: string
@@ -42,13 +41,3 @@ export interface Person {
 }
 
 export type FamilyData = Person[]
-
-export interface FamilyPayload {
-  data: FamilyData
-  version: number
-}
-
-export interface UpdatePersonResponse {
-  version: number
-  person: Person
-}

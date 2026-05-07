@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#8a3b2e" stroke-width="2" stroke-linecap="round">
+  <!-- Marriage line + descender -->
+  <line x1="10" y1="7" x2="22" y2="7"/>
+  <line x1="16" y1="7" x2="16" y2="16"/>
+  <!-- Sibling crossbar -->
+  <line x1="7" y1="16" x2="25" y2="16"/>
+  <line x1="7" y1="16" x2="7" y2="22"/>
+  <line x1="16" y1="16" x2="16" y2="22"/>
+  <line x1="25" y1="16" x2="25" y2="22"/>
+  <!-- Parent circles -->
+  <circle cx="10" cy="7" r="4" fill="#8a3b2e"/>
+  <circle cx="22" cy="7" r="4" fill="#2e7d8a"/>
+  <!-- Children -->
+  <circle cx="7" cy="25" r="3" fill="#d4a017"/>
+  <circle cx="16" cy="25" r="3" fill="#d4a017"/>
+  <circle cx="25" cy="25" r="3" fill="#d4a017"/>
+</svg>
