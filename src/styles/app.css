@@ -1,4 +1,31 @@
 :root {
+  /* Dark theme — the default. Light is the explicit opt-in below. */
+  --bg: #181b22;
+  --panel-bg: #232831;
+  --panel-bg-alt: #1c2029;
+  --text: #ece6d8;
+  --muted: #9da4b0;
+  --muted-2: #6f7682;
+  --accent: #d68d72;
+  --accent-ink: #1c2029;
+  --border: #2f3540;
+  --border-strong: #424a59;
+  --danger: #e57464;
+  --branch-lui: #d68d72;
+  --branch-shum: #5db0bf;
+  --branch-immediate: #e3b539;
+  --branch-placeholder: #6f7682;
+  --link-stroke: #6f7682;
+  --spouse-stroke: #d68d72;
+  --bridge-stroke: #6f7682;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
   --bg: #f5f2eb;
   --panel-bg: #ffffff;
   --panel-bg-alt: #faf7f0;
@@ -6,6 +33,7 @@
   --muted: #6b7280;
   --muted-2: #9aa0a6;
   --accent: #8a3b2e;
+  --accent-ink: #ffffff;
   --border: #e5e0d5;
   --border-strong: #d6cfbf;
   --danger: #c0392b;
@@ -13,10 +41,10 @@
   --branch-shum: #2e7d8a;
   --branch-immediate: #d4a017;
   --branch-placeholder: #9aa0a6;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --link-stroke: #6b6258;
+  --spouse-stroke: #c87a5a;
+  --bridge-stroke: #6b6258;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -240,13 +268,16 @@ button {
 }
 
 .f3 path.link {
-  stroke: #6b6258;
+  stroke: var(--link-stroke);
   stroke-width: 1.75px;
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  shape-rendering: geometricPrecision;
 }
 
 .f3 path.link.spouse-link {
-  stroke: #c87a5a;
+  stroke: var(--spouse-stroke);
   stroke-width: 2.5px;
 }
 
@@ -258,7 +289,7 @@ button {
 
 .f3 path.bridge-link {
   fill: none;
-  stroke: #6b6258;
+  stroke: var(--bridge-stroke);
   stroke-width: 1.75px;
   pointer-events: none;
 }
@@ -306,7 +337,7 @@ button {
 .legend-swatch.shum { background: var(--branch-shum); }
 .legend-swatch.marriage {
   background: transparent;
-  border-top: 3px solid #c87a5a;
+  border-top: 3px solid var(--spouse-stroke);
   border-radius: 0;
   height: 4px;
   align-self: center;
@@ -320,3 +351,276 @@ button {
   align-self: center;
   width: 16px;
 }
+
+/* ---------- Calendar FAB + dialog ---------- */
+
+.calendar-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.calendar-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+.calendar-fab svg { width: 22px; height: 22px; }
+
+.calendar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 18, 25, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.calendar-dialog {
+  background: var(--panel-bg);
+  border-radius: 12px;
+  width: 380px;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg-alt);
+}
+.calendar-header .month-label {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+.calendar-header button.nav {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendar-header button.nav.today-btn {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.calendar-header button.nav:hover { background: var(--bg); color: var(--text); }
+
+.calendar-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--muted);
+  margin-left: 2px;
+}
+.calendar-close:hover { background: var(--bg); color: var(--text); }
+
+.calendar-dow-row,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-dow-row {
+  padding: 8px 12px 0;
+  gap: 2px;
+}
+.calendar-dow {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.calendar-grid {
+  padding: 4px 12px 12px;
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border: 1.5px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+}
+.calendar-day:hover:not(:disabled) { background: var(--bg); }
+.calendar-day:disabled { cursor: default; }
+.calendar-day.outside { color: var(--muted-2); opacity: 0.55; }
+.calendar-day.today { background: var(--bg); font-weight: 700; }
+.calendar-day.has-bday { color: var(--accent); font-weight: 600; }
+.calendar-day.selected {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+.calendar-day .bday-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+.calendar-day.today.has-bday .bday-dot,
+.calendar-day.selected .bday-dot { background: var(--accent); }
+
+.calendar-people {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.calendar-people h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.calendar-people h4 .muted { color: var(--muted-2); font-weight: 500; }
+.calendar-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.calendar-person {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+.calendar-person:hover { background: var(--bg); }
+.calendar-person-name { color: var(--text); }
+.calendar-person-meta { color: var(--muted); font-size: 12px; }
+
+/* ---------- Theme toggle ---------- */
+
+.theme-toggle {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.theme-toggle:hover { background: var(--bg); }
+
+/* ---------- Search results: matched-field hint ---------- */
+
+.search-results .search-name { color: var(--text); }
+.search-results .search-field-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+.search-empty {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- MiniMap ---------- */
+
+.minimap {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  width: 200px;
+  height: 140px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  z-index: 40;
+  user-select: none;
+}
+.minimap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+.minimap svg:active { cursor: grabbing; }
+
+.muted-meta { color: var(--muted); font-size: 12px; }
+.minimap-bg {
+  fill: var(--panel-bg-alt);
+}
+.minimap-viewport {
+  fill: rgba(214, 141, 114, 0.12);
+  stroke: var(--accent);
+  stroke-width: 1.25;
+  pointer-events: none;
+}
+:root[data-theme='light'] .minimap-viewport {
+  fill: rgba(138, 59, 46, 0.10);
+}
+
+/* ---------- family-chart card readability under dark default ---------- */
+
+/* Default (dark): cards stay light-colored for readability against dark bg.
+   In dark mode the synthetic-root's inner-card background can leak through
+   transparency edges; explicitly color them to avoid an odd "bright spot". */

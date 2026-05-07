@@ -1,19 +1,29 @@
 import { useEffect, useRef } from 'react'
-import * as d3 from 'd3'
 import f3 from 'family-chart'
 import type { FamilyData, Person } from '../types'
 import { buildTreeData, SYNTHETIC_ROOT_ID } from '../lib/familyData'
+
+export interface LayoutNode {
+  id: string
+  x: number
+  y: number
+  branch?: string
+  added?: boolean
+}
 
 interface Props {
   data: FamilyData
   onSelect: (person: Person) => void
   focusId?: string
+  onLayout?: (nodes: LayoutNode[]) => void
 }
 
-export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
+export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
+  const onLayoutRef = useRef(onLayout)
+  onLayoutRef.current = onLayout
   const chartRef = useRef<any>(null)
   const didCenterRef = useRef(false)
 
@@ -40,10 +50,26 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
         hideSyntheticRoot(el)
         const latest = chart.store?.getData?.() as FamilyData | undefined
         if (latest) tagLinks(el, latest)
+        consolidateProgenyLinks(el)
         drawBridgeLinks(chart, el)
         if (!didCenterRef.current) {
-          centerOnPerson(chart, el, focusId)
+          centerOnPerson(chart, el, focusId, 0)
           didCenterRef.current = true
+        }
+        // Notify subscribers (minimap) of latest node positions.
+        if (onLayoutRef.current) {
+          const tree = chart.store?.getTree?.()
+          if (tree?.data) {
+            onLayoutRef.current(
+              (tree.data as Array<any>).map((n) => ({
+                id: n.data?.id,
+                x: n.x,
+                y: n.y,
+                branch: n.data?.data?.branch,
+                added: !!n.added,
+              })),
+            )
+          }
         }
       })
 
@@ -86,14 +112,19 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui' }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Push new data into the existing chart so pan/zoom stays put.
+  // Re-center on focus changes (e.g., user clicks a person in the side panel).
+  // Skip the very first run — initial centering is handled in setAfterUpdate.
+  const skipInitialFocusRef = useRef(true)
   useEffect(() => {
+    if (skipInitialFocusRef.current) {
+      skipInitialFocusRef.current = false
+      return
+    }
     const chart = chartRef.current
-    if (!chart) return
-    const treeData = buildTreeData(data)
-    chart.updateData(treeData)
-    chart.updateTree({ initial: false, tree_position: 'inherit' })
-  }, [data])
+    const el = containerRef.current
+    if (!chart || !el || !focusId) return
+    centerOnPerson(chart, el, focusId, 600)
+  }, [focusId])
 
   return <div ref={containerRef} className="tree-canvas" style={{ width: '100%', height: '100%' }} />
 }
@@ -140,10 +171,91 @@ function tagLinks(root: HTMLElement, data: FamilyData) {
   })
 }
 
+type ProgenyNode = { x: number; y: number; data: { id: string }; sx?: number }
+type ProgenyLinkDatum = {
+  spouse?: boolean
+  is_ancestry?: boolean
+  source?: ProgenyNode | ProgenyNode[]
+  target?: ProgenyNode
+}
+
+/**
+ * family-chart draws a separate path from each child up to the parent pair, so
+ * with N kids you get N overlapping paths converging at the parent — visible
+ * as multiple stacked lines at the corners. We hide those and draw a single
+ * clean fan-out per parent group: one drop from the parents, one crossbar,
+ * one drop per child.
+ */
+function consolidateProgenyLinks(el: HTMLElement) {
+  const linksView = el.querySelector('svg.main_svg .links_view') as SVGGElement | null
+  if (!linksView) return
+
+  let consolidatedG = linksView.querySelector('g.consolidated-progeny') as SVGGElement | null
+  if (!consolidatedG) {
+    consolidatedG = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    consolidatedG.setAttribute('class', 'consolidated-progeny')
+    linksView.appendChild(consolidatedG)
+  }
+  consolidatedG.innerHTML = ''
+
+  const groups = new Map<
+    string,
+    { paths: SVGPathElement[]; sources: ProgenyNode[]; targets: ProgenyNode[] }
+  >()
+
+  el.querySelectorAll<SVGPathElement>('path.link').forEach((path) => {
+    const datum = (path as unknown as { __data__?: ProgenyLinkDatum }).__data__
+    if (!datum || datum.spouse || datum.is_ancestry) return
+    if (!Array.isArray(datum.source) || !datum.target) return
+    const sources = datum.source as ProgenyNode[]
+    if (sources.some((s) => s?.data?.id === SYNTHETIC_ROOT_ID)) return
+
+    const key = sources.map((s) => s?.data?.id).filter(Boolean).sort().join('|')
+    if (!key) return
+    if (!groups.has(key)) groups.set(key, { paths: [], sources, targets: [] })
+    const g = groups.get(key)!
+    g.paths.push(path)
+    g.targets.push(datum.target)
+  })
+
+  for (const group of groups.values()) {
+    if (group.targets.length <= 1) continue // family-chart's link is already clean for one child
+
+    group.paths.forEach((p) => {
+      p.style.display = 'none'
+    })
+
+    const parentX =
+      group.sources.length === 2
+        ? (group.sources[0].x + group.sources[1].x) / 2
+        : group.sources[0].x
+    const parentY = group.sources[0].y
+    const childY = group.targets[0].y
+    const hy = (parentY + childY) / 2
+
+    const minX = Math.min(parentX, ...group.targets.map((t) => t.x))
+    const maxX = Math.max(parentX, ...group.targets.map((t) => t.x))
+
+    const segments: string[] = [
+      `M ${parentX} ${parentY} V ${hy}`, // parent drop to crossbar
+      `M ${minX} ${hy} H ${maxX}`,        // crossbar
+    ]
+    for (const t of group.targets) {
+      segments.push(`M ${t.x} ${hy} V ${t.y}`) // each child drop
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    path.setAttribute('d', segments.join(' '))
+    path.setAttribute('class', 'link consolidated')
+    consolidatedG.appendChild(path)
+  }
+}
+
 /**
  * Janet is shown as Alex's spouse-card (to avoid a duplicate Janet), which
  * means family-chart draws no line from her to her biological parents
- * Gong Gong + Po Po. We overlay a curve matching the default link style.
+ * Gong Gong + Po Po. We extend the consolidated crossbar leftward to her
+ * card so she visually plugs into the same fan-out as her siblings.
  */
 function drawBridgeLinks(chart: any, el: HTMLElement) {
   const tree = chart.store?.getTree?.()
@@ -161,46 +273,72 @@ function drawBridgeLinks(chart: any, el: HTMLElement) {
   }
   customG.innerHTML = ''
 
-  type Node = { data: { id: string }; x: number; y: number; added?: boolean }
+  type Node = {
+    data: { id: string; rels?: { father?: string; mother?: string } }
+    x: number
+    y: number
+    added?: boolean
+  }
   const nodes = tree.data as Node[]
 
   const bridges: Array<{ childId: string; fatherId?: string; motherId?: string }> = [
     { childId: 'janet-shum', fatherId: 'gf-shum', motherId: 'gm-shum' },
   ]
 
-  const line = d3.line<[number, number]>().curve(d3.curveMonotoneY)
-
   for (const { childId, fatherId, motherId } of bridges) {
-    const child = nodes.find((n) => n.data.id === childId && n.added) ?? nodes.find((n) => n.data.id === childId)
+    const child =
+      nodes.find((n) => n.data.id === childId && n.added) ??
+      nodes.find((n) => n.data.id === childId)
     const father = fatherId ? nodes.find((n) => n.data.id === fatherId) : undefined
     const mother = motherId ? nodes.find((n) => n.data.id === motherId) : undefined
     if (!child || (!father && !mother)) continue
 
     const p1 = father ?? mother!
     const p2 = mother ?? father!
-    const px = (p1.x + p2.x) / 2
     const py = (p1.y + p2.y) / 2
-    const hy = child.y + (py - child.y) / 2
+    const hy = (child.y + py) / 2
 
-    const points: [number, number][] = [
-      [child.x, child.y],
-      [child.x, hy],
-      [child.x, hy],
-      [px, hy],
-      [px, hy],
-      [px, py],
+    // Existing biological siblings (children of these parents already in the tree).
+    const siblings = nodes.filter(
+      (n) =>
+        !n.added &&
+        n.data.id !== childId &&
+        ((fatherId && n.data.rels?.father === fatherId) ||
+          (motherId && n.data.rels?.mother === motherId)),
+    )
+
+    // End the bridge at the nearest endpoint of the existing crossbar so it
+    // extends seamlessly. If no siblings, fall back to the parent midpoint.
+    let endX: number
+    if (siblings.length > 0) {
+      const xs = siblings.map((s) => s.x)
+      const minSibling = Math.min(...xs)
+      const maxSibling = Math.max(...xs)
+      if (child.x < minSibling) endX = minSibling
+      else if (child.x > maxSibling) endX = maxSibling
+      else endX = (p1.x + p2.x) / 2
+    } else {
+      endX = (p1.x + p2.x) / 2
+    }
+
+    const segments: string[] = [
+      `M ${child.x} ${child.y} V ${hy}`,
+      `M ${child.x} ${hy} H ${endX}`,
     ]
-    const dAttr = line(points)
-    if (!dAttr) continue
+    // If we couldn't extend an existing crossbar, drop into the parents directly.
+    if (siblings.length === 0) {
+      segments.push(`M ${endX} ${hy} V ${py}`)
+    }
+
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    path.setAttribute('d', dAttr)
+    path.setAttribute('d', segments.join(' '))
     path.setAttribute('class', 'bridge-link')
     path.setAttribute('data-bridge', childId)
     customG.appendChild(path)
   }
 }
 
-function centerOnPerson(chart: any, el: HTMLElement, id: string) {
+function centerOnPerson(chart: any, el: HTMLElement, id: string, transitionTime = 0) {
   const tree = chart.store?.getTree?.()
   if (!tree?.data) return
   const datum = tree.data.find((d: { data?: { id?: string } }) => d?.data?.id === id)
@@ -213,7 +351,7 @@ function centerOnPerson(chart: any, el: HTMLElement, id: string) {
     svg,
     svg_dim: { width: rect.width, height: rect.height },
     scale: 0.85,
-    transition_time: 0,
+    transition_time: transitionTime,
   })
 }
 

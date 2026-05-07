@@ -7,6 +7,7 @@ export interface PersonData {
   deathday?: string
   deceased?: boolean
   divorced?: boolean
+  is_pet?: boolean
   gender: Gender
   avatar?: string
   notes?: string

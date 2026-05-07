@@ -21,4 +21,4 @@ Pushing to `main` automatically rebuilds and redeploys the site via [.github/wor
 
 ## Stack
 
-Vite + React + TypeScript, [family-chart](https://github.com/donatso/family-chart) for tree rendering. Pure static SPA — no backend.
+Vite + React + TypeScript, [family-chart](https://github.com/donatso/family-chart) for tree rendering.

@@ -42,7 +42,8 @@
       "first_name": "Gong Gong",
       "last_name": "",
       "gender": "M",
-      "branch": "shum"
+      "branch": "shum",
+      "divorced": true
     },
     "rels": {
       "spouses": [
@@ -65,7 +66,8 @@
       "first_name": "Po Po",
       "last_name": "",
       "gender": "F",
-      "branch": "shum"
+      "branch": "shum",
+      "divorced": true
     },
     "rels": {
       "spouses": [
@@ -242,6 +244,9 @@
       "mother": "lisa-luh",
       "spouses": [
         "amanda-luh"
+      ],
+      "children": [
+        "otis-luh"
       ]
     }
   },
@@ -256,7 +261,25 @@
     "rels": {
       "spouses": [
         "justin-luh"
+      ],
+      "children": [
+        "otis-luh"
       ]
+    }
+  },
+  {
+    "id": "otis-luh",
+    "data": {
+      "first_name": "Otis",
+      "last_name": "Luh",
+      "gender": "M",
+      "branch": "shum",
+      "is_pet": true,
+      "notes": "Dog 🐶"
+    },
+    "rels": {
+      "father": "justin-luh",
+      "mother": "amanda-luh"
     }
   },
   {
@@ -500,7 +523,8 @@
       ],
       "children": [
         "elli-leung",
-        "lance-leung"
+        "lance-leung",
+        "bella-leung"
       ]
     }
   },
@@ -518,8 +542,24 @@
       ],
       "children": [
         "elli-leung",
-        "lance-leung"
+        "lance-leung",
+        "bella-leung"
       ]
+    }
+  },
+  {
+    "id": "bella-leung",
+    "data": {
+      "first_name": "Bella",
+      "last_name": "Leung",
+      "gender": "F",
+      "branch": "shum",
+      "is_pet": true,
+      "notes": "Dog 🐶"
+    },
+    "rels": {
+      "father": "william-leung",
+      "mother": "teresa-leung"
     }
   },
   {
@@ -636,13 +676,7 @@
       "last_name": "Lui",
       "gender": "M",
       "branch": "immediate",
-      "phone": "",
-      "email": "",
-      "current_town": "",
-      "interests": "",
-      "avatar": "",
-      "high_school_grad_year": "",
-      "college_grad_year": ""
+      "birthday": "2001-01-13"
     },
     "rels": {
       "father": "alex-lui",

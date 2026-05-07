@@ -1,6 +1,7 @@
 import type { FamilyData, Person } from '../types'
 import { findById, fullName, resolvePhotoUrl } from '../lib/familyData'
 import { formatDisplayDate, mailtoHref, telHref } from '../lib/formatters'
+import { getAgeText, getAstrology } from '../lib/astrology'
 
 interface Props {
   person: Person | null
@@ -24,7 +25,9 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
   const siblings = computeSiblings(data, person)
 
   const d = person.data
-  const subtitle = [dateRange(d), d.current_town].filter(Boolean).join(' · ')
+  const ageText = getAgeText(d)
+  const astro = getAstrology(d.birthday)
+  const subtitle = [dateRange(d), ageText, d.current_town].filter(Boolean).join(' · ')
 
   return (
     <aside className="side-panel">
@@ -43,6 +46,25 @@ export function DetailsPanel({ person, data, onSelect }: Props) {
           {subtitle && <div className="muted">{subtitle}</div>}
         </div>
       </div>
+
+      {astro && (
+        <Section title="Born under">
+          <Row label="Zodiac">
+            <span aria-hidden>{astro.zodiacSymbol}</span> {astro.zodiacSign}
+          </Row>
+          <Row label="Chinese">
+            <span aria-hidden>{astro.chineseZodiacEmoji}</span> {astro.chineseZodiac}
+          </Row>
+          <Row label="Element">
+            <span aria-hidden>{astro.chineseElementEmoji}</span>{' '}
+            {astro.chineseElement}
+            <span className="muted-meta"> · {astro.chineseElementColor}</span>
+          </Row>
+          <Row label="Birthstone">
+            <span aria-hidden>{astro.birthstoneEmoji}</span> {astro.birthstone}
+          </Row>
+        </Section>
+      )}
 
       {hasAny(d, ['phone', 'email']) && (
         <Section title="Contact">

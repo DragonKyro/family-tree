@@ -1,0 +1,265 @@
+import { useEffect, useMemo, useState } from 'react'
+import type { FamilyData, Person } from '../types'
+import { fullName } from '../lib/familyData'
+
+interface Props {
+  data: FamilyData
+  onSelectPerson: (person: Person) => void
+}
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+export function CalendarFab({ data, onSelectPerson }: Props) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button className="calendar-fab" onClick={() => setOpen(true)} aria-label="Open birthday calendar">
+        <CalendarIcon />
+      </button>
+      {open && (
+        <CalendarDialog
+          data={data}
+          onClose={() => setOpen(false)}
+          onSelectPerson={(p) => {
+            setOpen(false)
+            onSelectPerson(p)
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <line x1="8" y1="3" x2="8" y2="7" />
+      <line x1="16" y1="3" x2="16" y2="7" />
+    </svg>
+  )
+}
+
+interface DialogProps {
+  data: FamilyData
+  onClose: () => void
+  onSelectPerson: (p: Person) => void
+}
+
+function CalendarDialog({ data, onClose, onSelectPerson }: DialogProps) {
+  const today = useMemo(() => new Date(), [])
+  const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() })
+  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate())
+
+  // Map from "MM-DD" → people born that month/day (any year).
+  const byDate = useMemo(() => {
+    const map = new Map<string, Person[]>()
+    for (const p of data) {
+      const b = p.data.birthday
+      if (!b) continue
+      const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(b)
+      if (!m) continue
+      const key = `${m[1]}-${m[2]}`
+      const arr = map.get(key) ?? []
+      arr.push(p)
+      map.set(key, arr)
+    }
+    return map
+  }, [data])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'ArrowLeft') goPrevMonth()
+      else if (e.key === 'ArrowRight') goNextMonth()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose])
+
+  const goPrevMonth = () =>
+    setView((v) => ({
+      year: v.month === 0 ? v.year - 1 : v.year,
+      month: v.month === 0 ? 11 : v.month - 1,
+    }))
+  const goNextMonth = () =>
+    setView((v) => ({
+      year: v.month === 11 ? v.year + 1 : v.year,
+      month: v.month === 11 ? 0 : v.month + 1,
+    }))
+  const goPrevYear = () => setView((v) => ({ ...v, year: v.year - 1 }))
+  const goNextYear = () => setView((v) => ({ ...v, year: v.year + 1 }))
+  const goToday = () => {
+    setView({ year: today.getFullYear(), month: today.getMonth() })
+    setSelectedDay(today.getDate())
+  }
+
+  const startDow = new Date(view.year, view.month, 1).getDay()
+  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate()
+  const daysInPrevMonth = new Date(view.year, view.month, 0).getDate()
+
+  type Cell = { day: number; outside: boolean; key: string; monthOffset: -1 | 0 | 1 }
+  const cells: Cell[] = []
+  for (let i = startDow - 1; i >= 0; i--) {
+    const d = daysInPrevMonth - i
+    const month = view.month === 0 ? 12 : view.month
+    cells.push({
+      day: d,
+      outside: true,
+      monthOffset: -1,
+      key: `${pad2(month)}-${pad2(d)}`,
+    })
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({
+      day: d,
+      outside: false,
+      monthOffset: 0,
+      key: `${pad2(view.month + 1)}-${pad2(d)}`,
+    })
+  }
+  let i = 1
+  while (cells.length < 42) {
+    const month = view.month === 11 ? 1 : view.month + 2
+    cells.push({
+      day: i,
+      outside: true,
+      monthOffset: 1,
+      key: `${pad2(month)}-${pad2(i)}`,
+    })
+    i++
+  }
+
+  const selectedKey =
+    selectedDay != null
+      ? `${pad2(view.month + 1)}-${pad2(selectedDay)}`
+      : null
+  const selectedPeople = selectedKey ? byDate.get(selectedKey) ?? [] : []
+
+  return (
+    <div className="calendar-backdrop" onMouseDown={onClose} role="presentation">
+      <div
+        className="calendar-dialog"
+        onMouseDown={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="Birthday calendar"
+      >
+        <header className="calendar-header">
+          <button className="nav" onClick={goPrevYear} aria-label="Previous year" title="Previous year">«</button>
+          <button className="nav" onClick={goPrevMonth} aria-label="Previous month" title="Previous month">‹</button>
+          <div className="month-label">
+            {MONTH_NAMES[view.month]} {view.year}
+          </div>
+          <button className="nav" onClick={goNextMonth} aria-label="Next month" title="Next month">›</button>
+          <button className="nav" onClick={goNextYear} aria-label="Next year" title="Next year">»</button>
+          <button className="nav today-btn" onClick={goToday} title="Today">Today</button>
+          <button className="calendar-close" onClick={onClose} aria-label="Close">×</button>
+        </header>
+
+        <div className="calendar-dow-row">
+          {DOW.map((d, idx) => (
+            <div key={idx} className="calendar-dow">{d}</div>
+          ))}
+        </div>
+
+        <div className="calendar-grid">
+          {cells.map((c, idx) => {
+            const hasBday = !c.outside && byDate.has(c.key)
+            const isToday =
+              !c.outside &&
+              view.year === today.getFullYear() &&
+              view.month === today.getMonth() &&
+              c.day === today.getDate()
+            const isSelected = !c.outside && c.day === selectedDay
+            const cls = [
+              'calendar-day',
+              c.outside ? 'outside' : '',
+              isToday ? 'today' : '',
+              hasBday ? 'has-bday' : '',
+              isSelected ? 'selected' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')
+            return (
+              <button
+                key={idx}
+                className={cls}
+                onClick={() => !c.outside && setSelectedDay(c.day)}
+                disabled={c.outside}
+                aria-label={`${MONTH_NAMES[view.month]} ${c.day}`}
+              >
+                <span className="day-num">{c.day}</span>
+                {hasBday && <span className="bday-dot" aria-hidden />}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="calendar-people">
+          {selectedPeople.length > 0 ? (
+            <>
+              <h4>
+                {MONTH_NAMES[view.month]} {selectedDay}
+                <span className="muted"> · {selectedPeople.length}</span>
+              </h4>
+              {selectedPeople.map((p) => {
+                const meta = ageLine(p, view.year)
+                return (
+                  <button
+                    key={p.id}
+                    className="calendar-person"
+                    onClick={() => onSelectPerson(p)}
+                  >
+                    <span className="calendar-person-name">
+                      {fullName(p)}
+                      {p.data.deceased && <span aria-hidden> †</span>}
+                    </span>
+                    {meta && <span className="calendar-person-meta">{meta}</span>}
+                  </button>
+                )
+              })}
+            </>
+          ) : selectedDay != null ? (
+            <p className="calendar-empty">No birthdays on this day.</p>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, '0')
+}
+
+function ageLine(p: Person, viewYear: number): string {
+  const b = p.data.birthday
+  if (!b) return ''
+  const m = /^(\d{4})/.exec(b)
+  if (!m) return ''
+  const birthYear = Number(m[1])
+  const dm = p.data.deathday ? /^(\d{4})/.exec(p.data.deathday) : null
+  if (dm) {
+    return `${birthYear} – ${dm[1]}`
+  }
+  if (p.data.deceased) {
+    return `b. ${birthYear}`
+  }
+  const age = viewYear - birthYear
+  if (age < 0) return `b. ${birthYear}`
+  return `turns ${age}`
+}
