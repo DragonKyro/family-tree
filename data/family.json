@@ -688,7 +688,17 @@
       "current_town": "Jersey City, NJ",
       "current_job": "DRW",
       "current_role": "Associate Portfolio Manager",
-      "interests": "swimming, volleyball, frisbee, wing chun, bridge, blackjack, board games, cocktail making"
+      "interests": "swimming, volleyball, frisbee, wing chun, bridge, blackjack, board games, cocktail making",
+      "social": {
+        "instagram": "_kylelui_",
+        "facebook": "dragonkyro",
+        "linkedin": "kyle-lui-bb7168192",
+        "twitter": "dragonkyro31412",
+        "tiktok": "dragonkyro",
+        "snapchat": "dragonkyro",
+        "github": "DragonKyro",
+        "discord": "LeftChopsticky#7232"
+      }
     },
     "rels": {
       "father": "alex-lui",
