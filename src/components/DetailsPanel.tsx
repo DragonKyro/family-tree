@@ -11,6 +11,7 @@ import type {
 } from '../types'
 import { findById, fullName, resolvePhotoUrl } from '../lib/familyData'
 import { formatDisplayDate, formatInterests, mailtoHref, telHref } from '../lib/formatters'
+import { isSpeechAvailable, speakCantonese } from '../lib/speech'
 import { getAgeText, getAstrology } from '../lib/astrology'
 import { LightboxImage } from './LightboxImage'
 
@@ -192,7 +193,22 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
             <div className="muted name-aliases">
               {d.nickname && <span>"{d.nickname}"</span>}
               {d.nickname && d.chinese_name && ' · '}
-              {d.chinese_name && <span lang="zh">{d.chinese_name}</span>}
+              {d.chinese_name && (
+                <>
+                  <span lang="zh">{d.chinese_name}</span>
+                  {isSpeechAvailable() && (
+                    <button
+                      type="button"
+                      className="speak-btn"
+                      onClick={() => speakCantonese(d.chinese_name!)}
+                      aria-label={`Pronounce ${d.chinese_name}`}
+                      title="Pronounce"
+                    >
+                      🔊
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
           {subtitle && <div className="muted">{subtitle}</div>}

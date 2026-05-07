@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState }
 import type { FamilyData, Person } from '../types'
 import { findById, fullName, isSynthetic } from '../lib/familyData'
 import { getKinship } from '../lib/kinship'
+import { isSpeechAvailable, speakCantonese } from '../lib/speech'
 
 interface Props {
   data: FamilyData
@@ -139,6 +140,17 @@ export const RelationshipPanel = forwardRef<RelationshipPanelHandle, Props>(
                 <dt>Cantonese</dt>
                 <dd>
                   <span className="rel-cantonese">{result.cantonese}</span>
+                  {isSpeechAvailable() && (
+                    <button
+                      type="button"
+                      className="speak-btn"
+                      onClick={() => speakCantonese(result.cantonese)}
+                      aria-label={`Pronounce ${result.cantonese}`}
+                      title="Pronounce"
+                    >
+                      🔊
+                    </button>
+                  )}
                   <span className="rel-jyutping"> · {result.jyutping}</span>
                 </dd>
               </dl>

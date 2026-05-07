@@ -50,9 +50,9 @@
         "gm-shum"
       ],
       "children": [
-        "janet-shum",
         "lisa-luh",
         "mary-tam",
+        "janet-shum",
         "peter-shum",
         "teresa-leung",
         "amy-shum",
@@ -74,9 +74,9 @@
         "gf-shum"
       ],
       "children": [
-        "janet-shum",
         "lisa-luh",
         "mary-tam",
+        "janet-shum",
         "peter-shum",
         "teresa-leung",
         "amy-shum",
@@ -674,6 +674,7 @@
     "data": {
       "first_name": "Kyle",
       "last_name": "Lui",
+      "chinese_name": "雷智龍",
       "gender": "M",
       "branch": "immediate",
       "birthday": "2001-01-13",
