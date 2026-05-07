@@ -385,6 +385,13 @@ button {
   background: var(--branch-pet) !important;
   color: #ffffff !important;
 }
+
+/* Lineage-path highlight (relationship finder, both slots filled).
+   Path cards get an accent glow; the rest of the tree is left untouched. */
+.f3 .card.on-path .card-inner {
+  box-shadow: 0 0 0 3px var(--accent), 0 0 18px 4px rgba(214, 141, 114, 0.55) !important;
+  transition: box-shadow 0.18s ease;
+}
 /* Deceased: shaded via filter only — no opacity (opacity would let the
    parent-child connector line show through the card). */
 .f3 .card.is-deceased .card-inner {
@@ -610,14 +617,18 @@ button {
   min-height: 5px;
 }
 .calendar-day .bday-dot,
-.calendar-day .holiday-dot {
+.calendar-day .holiday-dot,
+.calendar-day .anniv-dot,
+.calendar-day .death-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   display: inline-block;
 }
-.calendar-day .bday-dot { background: var(--accent); }
-.calendar-day .holiday-dot { background: var(--branch-immediate); }
+.calendar-day .bday-dot { background: var(--accent); }                /* warm rose — birthday */
+.calendar-day .holiday-dot { background: var(--branch-immediate); }   /* gold — holiday */
+.calendar-day .anniv-dot { background: var(--branch-shum); }          /* teal — wedding anniversary */
+.calendar-day .death-dot { background: var(--muted); }                /* gray — death anniversary */
 .calendar-day.has-holiday .day-num { font-weight: 600; }
 
 .calendar-people {
@@ -669,6 +680,30 @@ button {
 .calendar-person:hover { background: var(--bg); }
 .calendar-person-name { color: var(--text); }
 .calendar-person-meta { color: var(--muted); font-size: 12px; }
+
+/* Generic event row (handles birthday/death/anniversary lines uniformly). */
+.calendar-event {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  font-size: 14px;
+}
+.calendar-event .event-icon { font-size: 14px; }
+.calendar-event .calendar-person-name { flex: 1; }
+.calendar-event .calendar-person-meta { white-space: nowrap; }
+/* Anniversary rows are <div>s with inline buttons; reset button styling */
+.event-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+.event-link:hover { text-decoration: underline; }
 
 /* ---------- Theme toggle ---------- */
 

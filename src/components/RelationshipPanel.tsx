@@ -8,6 +8,8 @@ interface Props {
   data: FamilyData
   initialFromId?: string | null
   onClose: () => void
+  /** Fires whenever either slot's selected id changes — drives the lineage-path highlight. */
+  onSelectionChange?: (fromId: string | null, toId: string | null) => void
 }
 
 interface PickerSlot {
@@ -25,7 +27,7 @@ export interface RelationshipPanelHandle {
 }
 
 export const RelationshipPanel = forwardRef<RelationshipPanelHandle, Props>(
-  function RelationshipPanel({ data, initialFromId, onClose }, ref) {
+  function RelationshipPanel({ data, initialFromId, onClose, onSelectionChange }, ref) {
     const [from, setFrom] = useState<PickerSlot>(() =>
       initialFromId
         ? { selectedId: initialFromId, query: nameOrEmpty(findById(data, initialFromId)) }
@@ -71,6 +73,18 @@ export const RelationshipPanel = forwardRef<RelationshipPanelHandle, Props>(
       const r = activeSlot === 'from' ? fromInputRef : toInputRef
       r.current?.focus()
     }, [activeSlot, from.selectedId, to.selectedId])
+
+    // Notify parent of selection changes so it can draw the lineage path on the tree.
+    // Also clear the path when this panel unmounts.
+    useEffect(() => {
+      onSelectionChange?.(from.selectedId, to.selectedId)
+    }, [from.selectedId, to.selectedId, onSelectionChange])
+    useEffect(() => {
+      return () => {
+        onSelectionChange?.(null, null)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const fromPerson = from.selectedId ? findById(data, from.selectedId) ?? null : null
     const toPerson = to.selectedId ? findById(data, to.selectedId) ?? null : null

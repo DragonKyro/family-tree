@@ -16,9 +16,11 @@ interface Props {
   onSelect: (person: Person) => void
   focusId?: string
   onLayout?: (nodes: LayoutNode[]) => void
+  /** Person ids to visually highlight (used by the relationship-finder lineage path). */
+  pathIds?: string[]
 }
 
-export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: Props) {
+export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout, pathIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
@@ -144,6 +146,20 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: P
     if (!chart || !el || !focusId) return
     centerOnPerson(chart, el, focusId, 600)
   }, [focusId])
+
+  // Lineage-path highlight: toggle .on-path on every card whose data-id is in pathIds,
+  // and an .has-path-active class on the container so we can dim the rest.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const set = new Set(pathIds ?? [])
+    const cards = el.querySelectorAll<HTMLElement>('.card')
+    cards.forEach((c) => {
+      const id = c.getAttribute('data-id') ?? ''
+      c.classList.toggle('on-path', set.has(id))
+    })
+    el.classList.toggle('has-path-active', set.size > 0)
+  }, [pathIds])
 
   return <div ref={containerRef} className="tree-canvas" style={{ width: '100%', height: '100%' }} />
 }

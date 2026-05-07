@@ -7,6 +7,7 @@ import { RelationshipPanel, type RelationshipPanelHandle } from './components/Re
 import { MiniMap } from './components/MiniMap'
 import { findById, isSynthetic, loadFamily } from './lib/familyData'
 import { upcomingHoliday } from './lib/holidays'
+import { findFamilyPath } from './lib/path'
 import type { Person } from './types'
 
 // Leaflet is ~150 KB — only ship it when the user opens the map.
@@ -36,7 +37,19 @@ export default function App() {
   const [tool, setTool] = useState<Tool>(null)
   const [panelCollapsed, setPanelCollapsed] = useState(false)
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false)
+  const [relSelection, setRelSelection] = useState<{ from: string | null; to: string | null }>({
+    from: null,
+    to: null,
+  })
   const relPanelRef = useRef<RelationshipPanelHandle | null>(null)
+
+  // Compute the lineage path only when the relationship tool is open AND both slots are filled.
+  const lineagePath = useMemo<string[]>(() => {
+    if (tool !== 'relationship') return []
+    const { from, to } = relSelection
+    if (!from || !to) return []
+    return findFamilyPath(from, to, data)
+  }, [tool, relSelection, data])
 
   useEffect(() => {
     if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light')
@@ -139,7 +152,13 @@ export default function App() {
         />
       )}
       <main className="tree-area">
-        <FamilyTree data={data} onSelect={handleSelect} focusId={focusId} onLayout={setLayoutNodes} />
+        <FamilyTree
+          data={data}
+          onSelect={handleSelect}
+          focusId={focusId}
+          onLayout={setLayoutNodes}
+          pathIds={lineagePath}
+        />
         <MiniMap nodes={layoutNodes} />
 
         <div className="tool-buttons">
@@ -185,6 +204,7 @@ export default function App() {
             data={data}
             initialFromId={selectedId}
             onClose={() => setTool(null)}
+            onSelectionChange={(from, to) => setRelSelection({ from, to })}
           />
         )}
         {tool === 'map' && (
