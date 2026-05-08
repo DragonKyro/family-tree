@@ -192,6 +192,8 @@ interface NamePickerProps {
 
 function NamePicker({ label, data, slot, onChange, isActive, onActivate, inputRef }: NamePickerProps) {
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   const matches = useMemo(() => {
     const q = slot.query.trim().toLowerCase()
@@ -201,6 +203,47 @@ function NamePicker({ label, data, slot, onChange, isActive, onActivate, inputRe
       .slice(0, 10)
   }, [data, slot.query])
 
+  // Reset highlight when the result set changes.
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [slot.query])
+
+  // Keep the highlighted suggestion in view.
+  useEffect(() => {
+    const items = resultsRef.current?.querySelectorAll<HTMLButtonElement>('button')
+    items?.[activeIndex]?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex])
+
+  const choose = (p: Person) => {
+    onChange({ query: fullName(p), selectedId: p.id })
+    setOpen(false)
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || matches.length === 0) {
+      if (e.key === 'ArrowDown' && matches.length > 0) {
+        e.preventDefault()
+        setOpen(true)
+        setActiveIndex(0)
+      }
+      return
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((i) => (i + 1) % matches.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => (i - 1 + matches.length) % matches.length)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const target = matches[activeIndex]
+      if (target) choose(target)
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      setOpen(false)
+    }
+  }
+
   return (
     <div className={`rel-picker${isActive ? ' is-active' : ''}`}>
       <label className="rel-picker-label">{label}</label>
@@ -209,6 +252,10 @@ function NamePicker({ label, data, slot, onChange, isActive, onActivate, inputRe
         type="search"
         value={slot.query}
         placeholder="Type a name or click on tree"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         onChange={(e) => {
           onChange({ query: e.target.value, selectedId: null })
           setOpen(true)
@@ -218,16 +265,23 @@ function NamePicker({ label, data, slot, onChange, isActive, onActivate, inputRe
           setOpen(true)
         }}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={onKeyDown}
+        role="combobox"
+        aria-expanded={open && matches.length > 0}
+        aria-autocomplete="list"
       />
       {open && slot.query && matches.length > 0 && (
-        <div className="rel-picker-results">
-          {matches.map((p) => (
+        <div className="rel-picker-results" ref={resultsRef} role="listbox">
+          {matches.map((p, i) => (
             <button
               key={p.id}
+              role="option"
+              aria-selected={i === activeIndex}
+              className={i === activeIndex ? 'active' : undefined}
+              onMouseEnter={() => setActiveIndex(i)}
               onMouseDown={(e) => {
                 e.preventDefault()
-                onChange({ query: fullName(p), selectedId: p.id })
-                setOpen(false)
+                choose(p)
               }}
             >
               {fullName(p)}

@@ -28,6 +28,18 @@ export function findFamilyPath(fromId: string, toId: string, data: FamilyData): 
     if (p.rels.mother) neighbors.push(p.rels.mother)
     if (p.rels.spouses) neighbors.push(...p.rels.spouses)
     if (p.rels.children) neighbors.push(...p.rels.children)
+    // Direct sibling edges: people sharing at least one parent. Without these,
+    // BFS would route Kyle → Kara via a parent, which produces an awkward
+    // "highlight one parent only" visual. Sibling-as-1-step is also semantically
+    // closer to how people think about the relationship.
+    for (const parentId of [p.rels.father, p.rels.mother]) {
+      if (!parentId) continue
+      const parent = byId.get(parentId)
+      if (!parent?.rels.children) continue
+      for (const sibId of parent.rels.children) {
+        if (sibId !== cur) neighbors.push(sibId)
+      }
+    }
     for (const n of neighbors) {
       if (cameFrom.has(n)) continue
       cameFrom.set(n, cur)

@@ -4,6 +4,7 @@ import { DetailsPanel } from './components/DetailsPanel'
 import { SearchBox } from './components/SearchBox'
 import { CalendarPanel } from './components/CalendarPanel'
 import { RelationshipPanel, type RelationshipPanelHandle } from './components/RelationshipPanel'
+import { SignsPanel, type FocusedSign } from './components/SignsPanel'
 import { MiniMap } from './components/MiniMap'
 import { findById, isSynthetic, loadFamily } from './lib/familyData'
 import { upcomingHoliday } from './lib/holidays'
@@ -14,7 +15,7 @@ import type { Person } from './types'
 const MapPanel = lazy(() => import('./components/MapPanel'))
 
 type Theme = 'dark' | 'light'
-type Tool = null | 'calendar' | 'relationship' | 'map'
+type Tool = null | 'calendar' | 'relationship' | 'map' | 'signs'
 
 const THEME_KEY = 'family-tree-theme'
 
@@ -41,7 +42,13 @@ export default function App() {
     from: null,
     to: null,
   })
+  const [focusedSign, setFocusedSign] = useState<FocusedSign | null>(null)
   const relPanelRef = useRef<RelationshipPanelHandle | null>(null)
+
+  const openSign = (sign: FocusedSign) => {
+    setFocusedSign(sign)
+    setTool('signs')
+  }
 
   // Compute the lineage path only when the relationship tool is open AND both slots are filled.
   const lineagePath = useMemo<string[]>(() => {
@@ -158,6 +165,7 @@ export default function App() {
           focusId={focusId}
           onLayout={setLayoutNodes}
           pathIds={lineagePath}
+          selectedId={selectedId}
         />
         <MiniMap nodes={layoutNodes} />
 
@@ -189,6 +197,15 @@ export default function App() {
           >
             <MapIcon />
           </button>
+          <button
+            type="button"
+            className={`tool-btn ${tool === 'signs' ? 'active' : ''}`}
+            onClick={() => toggleTool('signs')}
+            aria-label="Signs explorer"
+            title="Signs explorer"
+          >
+            <SignsIcon />
+          </button>
         </div>
 
         {tool === 'calendar' && (
@@ -212,11 +229,20 @@ export default function App() {
             <MapPanel data={data} onClose={() => setTool(null)} onSelectPerson={handleSelect} />
           </Suspense>
         )}
+        {tool === 'signs' && (
+          <SignsPanel
+            data={data}
+            focused={focusedSign}
+            onSelectPerson={handleSelect}
+            onClose={() => setTool(null)}
+          />
+        )}
       </main>
       <DetailsPanel
         person={selected}
         data={data}
         onSelect={handleSelect}
+        onOpenSign={openSign}
         collapsed={panelCollapsed}
         onToggleCollapse={() => setPanelCollapsed((c) => !c)}
         onClose={() => setSelectedId(null)}
@@ -252,6 +278,14 @@ function MapIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z" />
       <circle cx="12" cy="9" r="2.5" />
+    </svg>
+  )
+}
+
+function SignsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3 L14.6 9.6 L21.6 10 L16.2 14.5 L18 21.4 L12 17.6 L6 21.4 L7.8 14.5 L2.4 10 L9.4 9.6 Z" />
     </svg>
   )
 }

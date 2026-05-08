@@ -13,6 +13,7 @@ import { findById, fullName, resolvePhotoUrl } from '../lib/familyData'
 import { formatDisplayDate, formatInterests, mailtoHref, telHref } from '../lib/formatters'
 import { isSpeechAvailable, speakCantonese } from '../lib/speech'
 import { getAgeText, getAstrology } from '../lib/astrology'
+import type { FocusedSign } from './SignsPanel'
 import { LightboxImage } from './LightboxImage'
 
 interface SocialMeta {
@@ -89,12 +90,14 @@ interface Props {
   person: Person | null
   data: FamilyData
   onSelect: (person: Person) => void
+  /** Optional: when present, sign rows (zodiac, chinese, element, birthstone, MBTI) become clickable. */
+  onOpenSign?: (sign: FocusedSign) => void
   collapsed: boolean
   onToggleCollapse: () => void
   onClose?: () => void
 }
 
-export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollapse, onClose }: Props) {
+export function DetailsPanel({ person, data, onSelect, onOpenSign, collapsed, onToggleCollapse, onClose }: Props) {
   const [lightbox, setLightbox] = useState(false)
 
   // Close any open lightbox when the focused person changes.
@@ -150,27 +153,29 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
 
   return (
     <aside className="side-panel side-panel-has-person">
-      <button
-        type="button"
-        className="panel-toggle desktop-only"
-        onClick={onToggleCollapse}
-        aria-label="Collapse info panel"
-        title="Collapse info panel"
-      >
-        ›
-      </button>
-      {onClose && (
+      <div className="side-panel-top">
+        {/* Buttons live inside the sticky top region so they scroll with the
+            avatar+name header instead of staying anchored to the scrolling content. */}
         <button
           type="button"
-          className="panel-close mobile-only"
-          onClick={onClose}
-          aria-label="Close info panel"
-          title="Close"
+          className="panel-toggle desktop-only"
+          onClick={onToggleCollapse}
+          aria-label="Collapse info panel"
+          title="Collapse info panel"
         >
-          ✕
+          ›
         </button>
-      )}
-      <div className="side-panel-top">
+        {onClose && (
+          <button
+            type="button"
+            className="panel-close mobile-only"
+            onClick={onClose}
+            aria-label="Close info panel"
+            title="Close"
+          >
+            ✕
+          </button>
+        )}
         <div className="side-panel-avatar">
           {d.avatar ? (
             <button
@@ -255,7 +260,11 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
           )}
           {d.mbti && (
             <Row label="MBTI">
-              <span aria-hidden>🧠</span> {d.mbti}
+              <SignValue
+                emoji="🧠"
+                label={d.mbti}
+                onClick={onOpenSign && (() => onOpenSign({ category: 'mbti', key: d.mbti! }))}
+              />
             </Row>
           )}
           {d.relationship_status && (
@@ -270,18 +279,55 @@ export function DetailsPanel({ person, data, onSelect, collapsed, onToggleCollap
       {astro && (
         <Section title="Born under">
           <Row label="Zodiac">
-            <span aria-hidden>{astro.zodiacSymbol}</span> {astro.zodiacSign}
+            <SignValue
+              emoji={astro.zodiacSymbol}
+              label={astro.zodiacSign}
+              onClick={
+                onOpenSign &&
+                (() => onOpenSign({ category: 'zodiac', key: astro.zodiacSign.toLowerCase() }))
+              }
+            />
           </Row>
           <Row label="Chinese">
-            <span aria-hidden>{astro.chineseZodiacEmoji}</span> {astro.chineseZodiac}
+            <SignValue
+              emoji={astro.chineseZodiacEmoji}
+              label={astro.chineseZodiac}
+              onClick={
+                onOpenSign &&
+                (() =>
+                  onOpenSign({
+                    category: 'chineseZodiac',
+                    key: astro.chineseZodiac.toLowerCase(),
+                  }))
+              }
+            />
           </Row>
           <Row label="Element">
-            <span aria-hidden>{astro.chineseElementEmoji}</span>{' '}
-            {astro.chineseElement}
-            <span className="muted-meta"> · {astro.chineseElementColor}</span>
+            <SignValue
+              emoji={astro.chineseElementEmoji}
+              label={astro.chineseElement}
+              suffix={<span className="muted-meta"> · {astro.chineseElementColor}</span>}
+              onClick={
+                onOpenSign &&
+                (() =>
+                  onOpenSign({ category: 'element', key: astro.chineseElement.toLowerCase() }))
+              }
+            />
           </Row>
           <Row label="Birthstone">
-            <span aria-hidden>{astro.birthstoneEmoji}</span> {astro.birthstone}
+            <SignValue
+              emoji={astro.birthstoneEmoji}
+              label={astro.birthstone}
+              onClick={
+                onOpenSign && astro.birthstone
+                  ? () =>
+                      onOpenSign({
+                        category: 'birthstone',
+                        key: astro.birthstone.toLowerCase(),
+                      })
+                  : undefined
+              }
+            />
           </Row>
         </Section>
       )}
@@ -490,6 +536,33 @@ function Row({ label, children }: { label: React.ReactNode; children: React.Reac
       <div className="panel-row-label">{label}</div>
       <div className="panel-row-value">{children}</div>
     </div>
+  )
+}
+
+function SignValue({
+  emoji,
+  label,
+  suffix,
+  onClick,
+}: {
+  emoji: string
+  label: string
+  suffix?: React.ReactNode
+  onClick?: () => void
+}) {
+  if (onClick) {
+    return (
+      <button type="button" className="sign-link" onClick={onClick} title={`Open ${label} in Signs explorer`}>
+        <span aria-hidden>{emoji}</span> {label}
+        {suffix}
+      </button>
+    )
+  }
+  return (
+    <>
+      <span aria-hidden>{emoji}</span> {label}
+      {suffix}
+    </>
   )
 }
 
