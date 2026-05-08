@@ -16,9 +16,13 @@ interface Props {
   onSelect: (person: Person) => void
   focusId?: string
   onLayout?: (nodes: LayoutNode[]) => void
+  /** Person ids to visually highlight (used by the relationship-finder lineage path). */
+  pathIds?: string[]
+  /** Person currently focused in the side panel — gets an accent ring on the tree card. */
+  selectedId?: string | null
 }
 
-export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: Props) {
+export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout, pathIds, selectedId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
@@ -88,9 +92,11 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: P
       .setStyle('imageRect')
       .setCardDisplay([
         (d: { data: Person['data'] }) => fullNameFromRaw(d.data),
-        (d: { data: Person['data'] }) => dateLine(d.data),
       ])
-      .setCardDim({ width: 220, height: 80, img_width: 60, img_height: 60, img_x: 5, img_y: 10 })
+      // img_x/img_y must be 0 — family-chart writes them as inline `position: relative;
+      // left/top` on the <img>, which would override any flex-centering. We let
+      // CSS handle the placement via `align-items: center` on .card-image-rect.
+      .setCardDim({ width: 220, height: 80, img_width: 60, img_height: 60, img_x: 0, img_y: 0 })
       .setMiniTree(false)
       .setOnCardUpdate(function (this: Element, d: { data: Person }) {
         const cardEl = this.querySelector('.card') as HTMLElement | null
@@ -144,6 +150,33 @@ export function FamilyTree({ data, onSelect, focusId = 'kyle-lui', onLayout }: P
     if (!chart || !el || !focusId) return
     centerOnPerson(chart, el, focusId, 600)
   }, [focusId])
+
+  // Lineage-path highlight: mark cards on the path AND draw connecting yellow strokes
+  // (parent-drop + crossbar + child-drop for parent-child pairs, straight line for spouses).
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const set = new Set(pathIds ?? [])
+    const cards = el.querySelectorAll<HTMLElement>('.card')
+    cards.forEach((c) => {
+      const id = c.getAttribute('data-id') ?? ''
+      c.classList.toggle('on-path', set.has(id))
+    })
+    el.classList.toggle('has-path-active', set.size > 0)
+
+    drawPathOverlay(el, chartRef.current, pathIds ?? [], data)
+  }, [pathIds, data])
+
+  // Reflect the side-panel's focused person on the tree.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const cards = el.querySelectorAll<HTMLElement>('.card')
+    cards.forEach((c) => {
+      const id = c.getAttribute('data-id') ?? ''
+      c.classList.toggle('is-selected', !!selectedId && id === selectedId)
+    })
+  }, [selectedId])
 
   return <div ref={containerRef} className="tree-canvas" style={{ width: '100%', height: '100%' }} />
 }
@@ -271,6 +304,94 @@ function consolidateProgenyLinks(el: HTMLElement) {
 }
 
 /**
+ * Draws yellow overlay strokes between consecutive cards in the relationship-finder
+ * path. Each pair gets the appropriate routing — parent/child uses an L-shaped
+ * staircase; spouses get a straight line. Bridge cases (e.g. Janet ↔ gf-shum)
+ * fall through to a straight diagonal since the consolidated crossbar already
+ * isn't on the same y as the rendered card.
+ */
+function drawPathOverlay(
+  el: HTMLElement,
+  chart: any,
+  pathIds: string[],
+  data: FamilyData,
+) {
+  const view = el.querySelector('svg.main_svg .view') as SVGGElement | null
+  if (!view) return
+
+  // Always wipe any existing overlay first so toggling works.
+  view.querySelectorAll('g.path-overlay').forEach((n) => n.remove())
+  if (pathIds.length < 2) return
+
+  const tree = chart?.store?.getTree?.()
+  if (!tree?.data) return
+
+  const positions = new Map<string, { x: number; y: number }>()
+  for (const node of tree.data as Array<{ x: number; y: number; data?: { id?: string } }>) {
+    if (node.data?.id) positions.set(node.data.id, { x: node.x, y: node.y })
+  }
+
+  const byId = new Map(data.map((p) => [p.id, p]))
+
+  const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  overlay.setAttribute('class', 'path-overlay')
+
+  for (let i = 0; i < pathIds.length - 1; i++) {
+    const aId = pathIds[i]
+    const bId = pathIds[i + 1]
+    const a = positions.get(aId)
+    const b = positions.get(bId)
+    const aP = byId.get(aId)
+    const bP = byId.get(bId)
+    if (!a || !b || !aP || !bP) continue
+
+    const aIsSpouseOfB = aP.rels.spouses?.includes(bId)
+    const bIsParentOfA = aP.rels.father === bId || aP.rels.mother === bId
+    const aIsParentOfB = bP.rels.father === aId || bP.rels.mother === aId
+
+    // Siblings — share at least one parent. Route via the parent's crossbar so
+    // the highlight follows the actual tree branches (mirrors consolidateProgenyLinks).
+    const sharedParentId = [aP.rels.father, aP.rels.mother]
+      .filter((id): id is string => !!id)
+      .find((id) => bP.rels.father === id || bP.rels.mother === id)
+
+    let d: string
+    if (aIsSpouseOfB) {
+      d = `M ${a.x} ${a.y} L ${b.x} ${b.y}`
+    } else if (bIsParentOfA || aIsParentOfB) {
+      const parent = bIsParentOfA ? b : a
+      const child = bIsParentOfA ? a : b
+      const midY = (parent.y + child.y) / 2
+      d = `M ${parent.x} ${parent.y} V ${midY} H ${child.x} V ${child.y}`
+    } else if (sharedParentId) {
+      const parentPos = positions.get(sharedParentId)
+      if (parentPos) {
+        const hy = (a.y + parentPos.y) / 2  // crossbar y between parent and children
+        d = `M ${a.x} ${a.y} V ${hy} H ${b.x} V ${b.y}`
+      } else {
+        d = `M ${a.x} ${a.y} L ${b.x} ${b.y}`
+      }
+    } else {
+      d = `M ${a.x} ${a.y} L ${b.x} ${b.y}`
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    path.setAttribute('d', d)
+    path.setAttribute('class', 'path-overlay-stroke')
+    overlay.appendChild(path)
+  }
+
+  // Insert as the last child of .view so it paints above existing links but stays
+  // below the cards_view (which appears later in the DOM).
+  const linksView = el.querySelector('svg.main_svg .links_view')
+  if (linksView && linksView.parentNode === view) {
+    view.insertBefore(overlay, linksView.nextSibling)
+  } else {
+    view.appendChild(overlay)
+  }
+}
+
+/**
  * Janet is shown as Alex's spouse-card (to avoid a duplicate Janet), which
  * means family-chart draws no line from her to her biological parents
  * Gong Gong + Po Po. We extend the consolidated crossbar leftward to her
@@ -374,13 +495,3 @@ function centerOnPerson(chart: any, el: HTMLElement, id: string, transitionTime 
   })
 }
 
-function dateLine(data: Person['data']): string {
-  // Card shading conveys deceased status — no dagger here. The full date range
-  // (when available) still displays for both living and deceased.
-  const b = data.birthday || ''
-  const d = data.deathday || ''
-  if (b && d) return `${b} – ${d}`
-  if (b) return b
-  if (d) return d
-  return ''
-}

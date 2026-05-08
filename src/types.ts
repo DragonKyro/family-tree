@@ -68,6 +68,8 @@ export interface PersonData {
   last_name: string
   birthday?: string
   deathday?: string
+  /** Wedding date — set on each spouse (denormalized). YYYY-MM-DD. */
+  wedding_date?: string
   deceased?: boolean
   divorced?: boolean
   is_pet?: boolean

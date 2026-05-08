@@ -9,6 +9,15 @@ interface Props {
   onClose: () => void
 }
 
+type EventKind = 'birthday' | 'death' | 'anniversary'
+
+interface DayEvent {
+  person: Person
+  kind: EventKind
+  /** For anniversaries: the spouse on the other side of the marriage. */
+  spouse?: Person
+}
+
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -20,17 +29,36 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
   const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() })
   const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate())
 
+  // Build a unified "MM-DD" → events map covering birthdays, deathdays, and anniversaries.
+  // Anniversaries are deduped per couple-day so a wedding date stored on both spouses
+  // doesn't render twice.
   const byDate = useMemo(() => {
-    const map = new Map<string, Person[]>()
-    for (const p of data) {
-      const b = p.data.birthday
-      if (!b) continue
-      const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(b)
-      if (!m) continue
-      const key = `${m[1]}-${m[2]}`
+    const map = new Map<string, DayEvent[]>()
+    const byId = new Map(data.map((p) => [p.id, p]))
+    const seenAnniversary = new Set<string>()
+
+    const push = (key: string, ev: DayEvent) => {
       const arr = map.get(key) ?? []
-      arr.push(p)
+      arr.push(ev)
       map.set(key, arr)
+    }
+
+    for (const p of data) {
+      const b = monthDayKey(p.data.birthday)
+      if (b) push(b, { person: p, kind: 'birthday' })
+      const dd = monthDayKey(p.data.deathday)
+      if (dd) push(dd, { person: p, kind: 'death' })
+      const wd = monthDayKey(p.data.wedding_date)
+      if (wd && p.rels.spouses?.length) {
+        for (const sid of p.rels.spouses) {
+          const pair = [p.id, sid].sort().join('|')
+          const dedupeKey = `${pair}::${wd}`
+          if (seenAnniversary.has(dedupeKey)) continue
+          seenAnniversary.add(dedupeKey)
+          const sp = byId.get(sid)
+          if (sp) push(wd, { person: p, kind: 'anniversary', spouse: sp })
+        }
+      }
     }
     return map
   }, [data])
@@ -86,7 +114,7 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
 
   const selectedKey =
     selectedDay != null ? `${pad2(view.month + 1)}-${pad2(selectedDay)}` : null
-  const selectedPeople = selectedKey ? byDate.get(selectedKey) ?? [] : []
+  const selectedEvents = selectedKey ? byDate.get(selectedKey) ?? [] : []
   const selectedHolidays =
     selectedDay != null ? holidaysOn(view.year, view.month + 1, selectedDay) : []
 
@@ -108,7 +136,8 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
 
       <div className="calendar-grid">
         {cells.map((c, idx) => {
-          const hasBday = !c.outside && byDate.has(c.key)
+          const events = c.outside ? [] : byDate.get(c.key) ?? []
+          const kinds = new Set(events.map((e) => e.kind))
           const cellHolidays = c.outside ? [] : holidaysOn(view.year, view.month + 1, c.day)
           const hasHoliday = cellHolidays.length > 0
           const isToday =
@@ -121,7 +150,7 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
             'calendar-day',
             c.outside ? 'outside' : '',
             isToday ? 'today' : '',
-            hasBday ? 'has-bday' : '',
+            kinds.size > 0 ? 'has-event' : '',
             hasHoliday ? 'has-holiday' : '',
             isSelected ? 'selected' : '',
           ].filter(Boolean).join(' ')
@@ -137,7 +166,9 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
               <span className="day-num">{c.day}</span>
               <span className="day-marks" aria-hidden>
                 {hasHoliday && <span className="holiday-dot" />}
-                {hasBday && <span className="bday-dot" />}
+                {kinds.has('birthday') && <span className="bday-dot" />}
+                {kinds.has('anniversary') && <span className="anniv-dot" />}
+                {kinds.has('death') && <span className="death-dot" />}
               </span>
             </button>
           )
@@ -149,8 +180,8 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
           <>
             <h4>
               {MONTH_NAMES[view.month]} {selectedDay}
-              {selectedPeople.length > 0 && (
-                <span className="muted"> · {selectedPeople.length}</span>
+              {selectedEvents.length > 0 && (
+                <span className="muted"> · {selectedEvents.length}</span>
               )}
             </h4>
 
@@ -160,20 +191,45 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
               </div>
             ))}
 
-            {selectedPeople.map((p) => {
-              const meta = ageLine(p, view.year)
+            {selectedEvents.map((ev, i) => {
+              if (ev.kind === 'anniversary') {
+                const a = ev.person
+                const b = ev.spouse!
+                const yearsText = anniversaryYears(a.data.wedding_date, view.year)
+                return (
+                  <div key={`anniv-${a.id}-${b.id}`} className="calendar-event">
+                    <span aria-hidden className="event-icon">💍</span>
+                    <span className="calendar-person-name">
+                      <button className="event-link" onClick={() => onSelectPerson(a)}>{fullName(a)}</button>
+                      {' & '}
+                      <button className="event-link" onClick={() => onSelectPerson(b)}>{fullName(b)}</button>
+                    </span>
+                    {yearsText && <span className="calendar-person-meta">{yearsText}</span>}
+                  </div>
+                )
+              }
+              const p = ev.person
+              const meta =
+                ev.kind === 'birthday'
+                  ? ageLine(p, view.year)
+                  : ev.kind === 'death'
+                    ? deathLine(p, view.year)
+                    : ''
+              const icon = ev.kind === 'birthday' ? '🎂' : '🕊️'
               return (
-                <button key={p.id} className="calendar-person" onClick={() => onSelectPerson(p)}>
-                  <span className="calendar-person-name">
-                    {fullName(p)}
-                    {p.data.deceased && <span aria-hidden> †</span>}
-                  </span>
+                <button
+                  key={`${ev.kind}-${p.id}-${i}`}
+                  className="calendar-event calendar-person"
+                  onClick={() => onSelectPerson(p)}
+                >
+                  <span aria-hidden className="event-icon">{icon}</span>
+                  <span className="calendar-person-name">{fullName(p)}</span>
                   {meta && <span className="calendar-person-meta">{meta}</span>}
                 </button>
               )
             })}
 
-            {selectedPeople.length === 0 && selectedHolidays.length === 0 && (
+            {selectedEvents.length === 0 && selectedHolidays.length === 0 && (
               <p className="calendar-empty">Nothing on this day.</p>
             )}
           </>
@@ -185,6 +241,35 @@ export function CalendarPanel({ data, onSelectPerson, onClose }: Props) {
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0')
+}
+
+function monthDayKey(iso: string | undefined): string | null {
+  if (!iso) return null
+  const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso)
+  return m ? `${m[1]}-${m[2]}` : null
+}
+
+function anniversaryYears(weddingDate: string | undefined, viewYear: number): string {
+  if (!weddingDate) return ''
+  const m = /^(\d{4})/.exec(weddingDate)
+  if (!m) return ''
+  const startYear = Number(m[1])
+  const years = viewYear - startYear
+  if (years < 0) return `since ${startYear}`
+  if (years === 0) return 'wedding day'
+  return `${years} year${years === 1 ? '' : 's'}`
+}
+
+function deathLine(p: Person, viewYear: number): string {
+  const dd = p.data.deathday
+  if (!dd) return ''
+  const m = /^(\d{4})/.exec(dd)
+  if (!m) return ''
+  const deathYear = Number(m[1])
+  const years = viewYear - deathYear
+  if (years < 0) return `d. ${deathYear}`
+  if (years === 0) return `passed ${deathYear}`
+  return `${years} year${years === 1 ? '' : 's'} ago`
 }
 
 function ageLine(p: Person, viewYear: number): string {

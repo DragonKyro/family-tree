@@ -11,11 +11,12 @@
   --border: #2f3540;
   --border-strong: #424a59;
   --danger: #e57464;
-  --branch-lui: #d68d72;
-  --branch-shum: #5db0bf;
+  --branch-lui: #4d92dd;        /* vivid royal-leaning blue — distinct from male slate-blue card fill */
+  --branch-shum: #e54848;       /* vivid red — distinct from female dusty-pink card fill */
   --branch-immediate: #e3b539;
   --branch-placeholder: #6f7682;
   --branch-pet: #b08968;
+  --highlight: #facc15;         /* bright yellow — used for relationship-path glow, contrasts every card fill */
   --link-stroke: #6f7682;
   --spouse-stroke: #d68d72;
   --bridge-stroke: #6f7682;
@@ -38,11 +39,12 @@
   --border: #e5e0d5;
   --border-strong: #d6cfbf;
   --danger: #c0392b;
-  --branch-lui: #8a3b2e;
-  --branch-shum: #2e7d8a;
+  --branch-lui: #1d4ed8;        /* deep royal blue — Lui side outline */
+  --branch-shum: #b91c1c;       /* deep red — Shum side outline */
   --branch-immediate: #d4a017;
   --branch-placeholder: #9aa0a6;
   --branch-pet: #8b6238;
+  --highlight: #ca8a04;         /* darker yellow for light-theme path glow */
   --link-stroke: #6b6258;
   --spouse-stroke: #c87a5a;
   --bridge-stroke: #6b6258;
@@ -95,7 +97,8 @@ button {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 50;
+  /* No explicit z-index: creating a stacking context here would trap the mobile
+     header-menu dropdown (z-index 210) below the backdrop (z-index 200, sibling). */
 }
 
 .app-title {
@@ -154,7 +157,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  /* Above .side-panel-top (z-index 5) so the › collapse button stays visible
+     once the panel header is sticky. */
+  z-index: 10;
   padding: 0;
 }
 .panel-toggle:hover {
@@ -177,6 +182,11 @@ button {
   padding: 20px 20px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--panel-bg-alt);
+  /* Stick to the top of the side-panel scroll on every viewport, so the avatar
+     + name + close button stay visible while the user scrolls long profiles. */
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .side-panel-avatar .avatar {
@@ -204,7 +214,9 @@ button {
   outline-offset: 2px;
 }
 
-.avatar-placeholder {
+/* Higher specificity (matches `.side-panel-avatar .avatar` from earlier) so the
+   inherited `display: block` doesn't kill flex centering. */
+.side-panel-avatar .avatar.avatar-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,7 +224,7 @@ button {
   color: var(--muted);
   font-weight: 600;
   font-size: 22px;
-  letter-spacing: 0.05em;
+  /* Removed letter-spacing — its trailing space pushed the text off-center. */
 }
 
 .side-panel-title h2 {
@@ -291,6 +303,9 @@ button {
 .search-box {
   position: relative;
   width: 280px;
+  /* Promote the search-box itself so its dropdown sits above the side-panel. */
+  z-index: 100;
+  isolation: isolate;
 }
 
 .search-box input {
@@ -300,6 +315,11 @@ button {
   border-radius: 6px;
   font-size: 14px;
   background: var(--bg);
+}
+/* Show a pointer over the native search-input clear (X) button. */
+.search-box input[type="search"]::-webkit-search-cancel-button,
+.rel-picker input[type="search"]::-webkit-search-cancel-button {
+  cursor: pointer;
 }
 .search-box input:focus {
   outline: 2px solid var(--accent);
@@ -314,10 +334,11 @@ button {
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 6px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   max-height: 280px;
   overflow-y: auto;
-  z-index: 50;
+  /* Above side-panel (90), tool panels (110), and mobile dropdown (210). */
+  z-index: 220;
 }
 
 .search-results button {
@@ -330,7 +351,10 @@ button {
   cursor: pointer;
   font-size: 14px;
 }
-.search-results button:hover { background: var(--bg); }
+.search-results button:hover,
+.search-results button.active {
+  background: var(--bg);
+}
 
 /* ---------- Tree rendering ---------- */
 
@@ -384,6 +408,92 @@ button {
 .f3 .card.is-pet .card-inner {
   background: var(--branch-pet) !important;
   color: #ffffff !important;
+}
+
+/* Lineage-path highlight (relationship finder, both slots filled).
+   Bright yellow ring + glow contrasts every branch border + every gender fill. */
+.f3 .card.on-path .card-inner {
+  box-shadow:
+    0 0 0 4px var(--highlight),
+    0 0 22px 6px rgba(250, 204, 21, 0.7) !important;
+  transition: box-shadow 0.18s ease;
+}
+.f3 .card.on-path { z-index: 5; }  /* float path cards above their neighbors so the glow isn't clipped */
+
+/* Hover — cyan glow. Distinct from card fills (male slate-blue, female dusty
+   pink) and from the yellow select color. Branch border is preserved.
+   Per-branch overrides below are needed because family-chart's
+   `.f3 div.card:hover .card-inner` rule (specificity 0,4,1) replaces the
+   branch's colored box-shadow with a black drop. We re-assert the branch
+   shadow at higher specificity (0,5,0) so the colored border survives. */
+.f3 .card.branch-immediate:hover .card-inner {
+  box-shadow: 0 0 0 3px var(--branch-immediate), 0 6px 16px rgba(212, 160, 23, 0.25);
+}
+.f3 .card.branch-lui:hover .card-inner {
+  box-shadow: 0 0 0 2.5px var(--branch-lui), 0 4px 10px rgba(77, 146, 221, 0.22);
+}
+.f3 .card.branch-shum:hover .card-inner {
+  box-shadow: 0 0 0 2.5px var(--branch-shum), 0 4px 10px rgba(229, 72, 72, 0.22);
+}
+.f3 .card.branch-placeholder:hover .card-inner {
+  box-shadow: 0 0 0 2px var(--branch-placeholder);
+}
+.f3 .card:hover .card-inner {
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.85));  /* cyan */
+  cursor: pointer;
+}
+
+/* Selected (focused in side panel) — yellow glow. Branch border preserved.
+   Wins over hover via source order. */
+.f3 .card.is-selected .card-inner {
+  filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.95));  /* yellow */
+}
+.f3 .card.is-selected { z-index: 4; }
+
+/* Card label readability — single line, name larger (birthday no longer rendered). */
+.f3 div.card-image-rect div.card-label p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Vertical-center the avatar inside the card box. The flex container has to
+   fill the full foreignObject height — family-chart only sets min-height: 70
+   which leaves a gap at the bottom of the 80-tall card and parks the image
+   wherever default block flow puts it. Stretch to 100% so align-items:center
+   has the right axis to work with. */
+.f3 div.card-image-rect {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+}
+.f3 .card-inner {
+  height: 100%;
+}
+.f3 div.card-image-rect img,
+.f3 div.card-image-rect .person-icon {
+  height: 60px;
+  width: 60px;
+  padding: 0;
+  margin: 0 10px 0 6px;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+/* Yellow strokes connecting consecutive cards in the lineage path. */
+.f3 .path-overlay-stroke {
+  stroke: var(--highlight);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  pointer-events: none;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.7));
 }
 /* Deceased: shaded via filter only — no opacity (opacity would let the
    parent-child connector line show through the card). */
@@ -610,14 +720,18 @@ button {
   min-height: 5px;
 }
 .calendar-day .bday-dot,
-.calendar-day .holiday-dot {
+.calendar-day .holiday-dot,
+.calendar-day .anniv-dot,
+.calendar-day .death-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
   display: inline-block;
 }
-.calendar-day .bday-dot { background: var(--accent); }
-.calendar-day .holiday-dot { background: var(--branch-immediate); }
+.calendar-day .bday-dot { background: var(--accent); }                /* warm rose — birthday */
+.calendar-day .holiday-dot { background: var(--branch-immediate); }   /* gold — holiday */
+.calendar-day .anniv-dot { background: #d946ef; }                     /* magenta — wedding anniversary */
+.calendar-day .death-dot { background: var(--muted); }                /* gray — death anniversary */
 .calendar-day.has-holiday .day-num { font-weight: 600; }
 
 .calendar-people {
@@ -669,6 +783,30 @@ button {
 .calendar-person:hover { background: var(--bg); }
 .calendar-person-name { color: var(--text); }
 .calendar-person-meta { color: var(--muted); font-size: 12px; }
+
+/* Generic event row (handles birthday/death/anniversary lines uniformly). */
+.calendar-event {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  font-size: 14px;
+}
+.calendar-event .event-icon { font-size: 14px; }
+.calendar-event .calendar-person-name { flex: 1; }
+.calendar-event .calendar-person-meta { white-space: nowrap; }
+/* Anniversary rows are <div>s with inline buttons; reset button styling */
+.event-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+.event-link:hover { text-decoration: underline; }
 
 /* ---------- Theme toggle ---------- */
 
@@ -965,6 +1103,209 @@ button {
   color: #9bbbe6;
 }
 
+/* ---------- Signs explorer panel ---------- */
+
+.tool-panel.signs-panel {
+  width: 460px;
+  /* Fixed height (not max-height) so the panel doesn't resize as the user
+     clicks between short and long sign descriptions. The detail pane
+     scrolls internally instead. */
+  height: min(640px, calc(100% - 28px));
+}
+
+.signs-family-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  margin-left: auto;
+}
+.signs-family-toggle input { accent-color: var(--accent); }
+
+.signs-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 10px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.signs-tab {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.signs-tab:hover { color: var(--text); }
+.signs-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.signs-body {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.signs-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+.signs-list-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: 7px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+}
+.signs-list-item:hover { background: var(--bg); }
+.signs-list-item.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.signs-list-emoji {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.signs-list-name { flex: 1; }
+.signs-list-count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+}
+.signs-list-item.active .signs-list-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--accent-ink);
+}
+
+.signs-detail {
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+
+.signs-detail-inner { display: flex; flex-direction: column; gap: 10px; }
+
+.signs-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.signs-detail-emoji { font-size: 26px; line-height: 1; }
+.signs-detail-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.signs-meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 10px;
+  font-size: 12px;
+}
+.signs-meta-row { display: contents; }
+.signs-meta-row dt { color: var(--muted); }
+.signs-meta-row dd { margin: 0; color: var(--text); }
+
+.signs-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.signs-bullets h4 {
+  margin: 4px 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.signs-bullets ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.signs-people {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.signs-people-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.signs-people ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.signs-empty {
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Clickable sign value in DetailsPanel rows. Uses the accent color in its
+   resting state so the user sees it's clickable, matching .person-link and
+   the <a> styling inside .panel-row-value. */
+.sign-link {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 4px;
+}
+.sign-link:hover { text-decoration: underline; }
+.sign-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* The muted-meta tail on the Element row should stay muted, even inside the link. */
+.sign-link .muted-meta { color: var(--muted); }
+
 /* ---------- Holiday badge in header ---------- */
 
 .holiday-badge {
@@ -1205,13 +1546,14 @@ button {
     display: none;
   }
 
-  /* Sticky avatar+name header inside the panel scroll, so the close button + identity stay visible. */
-  .side-panel-top {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: var(--panel-bg-alt);
+  /* iOS Safari auto-zooms when a focused input has font-size < 16px. Bump every
+     text input to 16px on phones so tapping/auto-focusing never triggers the zoom. */
+  .search-box input,
+  .rel-picker input {
+    font-size: 16px;
   }
+
+  /* (Sticky avatar+name header is set in the base .side-panel-top rule above.) */
 
   /* Close button: pin to viewport so it stays visible regardless of scroll position. */
   .panel-close {
@@ -1268,5 +1610,19 @@ button {
     text-align: center;
     padding-bottom: 0;
     transform: rotate(90deg);
+  }
+
+  /* Signs panel: stack list above detail. */
+  .tool-panel.signs-panel {
+    width: 100%;
+    max-height: 100dvh;
+  }
+  .signs-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 38vh 1fr;
+  }
+  .signs-list {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
   }
 }
